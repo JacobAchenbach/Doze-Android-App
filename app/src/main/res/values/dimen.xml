@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="padding_small">4dp</dimen>
+    <dimen name="padding_medium">8dp</dimen>
+    <dimen name="padding_large">16dp</dimen>
+    <dimen name="padding_xl">24dp</dimen>
+    <dimen name="padding_xxl">32dp</dimen>
+
+    <dimen name="item_size_xsmall">32dp</dimen>
+    <dimen name="item_size_small">48dp</dimen>
+    <dimen name="item_size_medium">64dp</dimen>
+    <dimen name="item_size_large">94dp</dimen>
+
+    <dimen name="status_bar_height">25dp</dimen>
+</resources>

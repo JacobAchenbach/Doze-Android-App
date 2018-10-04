@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Doze</string>
+    <string name="ask_for_permission_text">
+        Hey!\n\nWe need your permission in order for Doze to work its magic.\n\nWe won\'t mess with your stuff. Promise.</string>
+</resources>

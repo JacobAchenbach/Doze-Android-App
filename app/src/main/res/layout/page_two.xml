@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:animateLayoutChanges="true">
+
+
+<!--    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.4">
+        <CheckBox
+
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_alignParentEnd="true"/>
+
+    </RelativeLayout>
+    &lt;!&ndash; Listed Contacts &ndash;&gt;
+    <RelativeLayout
+        android:id="@+id/container_listed_contacts"
+        android:layout_width="wrap_content"
+        android:layout_weight="0.6"
+        android:layout_height="0dp"
+        android:layout_marginBottom="20dp">
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/text_bg">
+
+
+        </android.support.v7.widget.RecyclerView>
+
+    </RelativeLayout>-->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/item_size_small"
+        android:background="@color/colorAccent"
+        android:elevation="8dp">
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginBottom="3px"
+            android:layout_marginStart="3px"
+            android:layout_marginEnd="3px"
+            android:background="@color/white">
+            <LinearLayout
+                android:layout_width="@dimen/item_size_large"
+                android:layout_height="@dimen/item_size_xsmall"
+                android:layout_centerVertical="true"
+                android:layout_marginEnd="@dimen/padding_large"
+                android:layout_alignParentEnd="true"
+                android:gravity="center">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="@dimen/padding_medium"
+                    android:text="Options"
+                    android:gravity="center_vertical"
+                    android:textColor="@color/black"/>
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/baseline_arrow_drop_down_white_24"
+                    android:backgroundTint="@color/black"
+                    android:layout_gravity="center_vertical"/>
+
+            </LinearLayout>
+
+        </RelativeLayout>
+
+    </RelativeLayout>
+
+    <android.support.v4.widget.SwipeRefreshLayout
+        android:id="@+id/swipe_refresh"
+        android:background="@android:color/transparent"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="@dimen/item_size_small">
+
+            <in.myinnos.alphabetsindexfastscrollrecycler.IndexFastScrollRecyclerView
+                android:id="@+id/recycler_view"
+                android:visibility="invisible"
+                android:layout_marginTop="@dimen/item_size_small"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
+
+
+
+    </android.support.v4.widget.SwipeRefreshLayout>
+
+
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_centerInParent="true"/>
+
+    <TextView
+        android:id="@+id/no_contacts_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="No Contacts to show :/"
+        android:textSize="24sp"
+        android:layout_centerInParent="true"/>
+
+</RelativeLayout>
