@@ -7,13 +7,9 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.content.ContextCompat;
-import android.text.SpannableStringBuilder;
-import android.text.Spanned;
-import android.text.style.DynamicDrawableSpan;
-import android.text.style.ImageSpan;
 import android.util.SparseArray;
 
-import cache.doze.Fragments.Page1;
+import cache.doze.Fragments.MainRepliesFragment;
 import cache.doze.Fragments.Page2;
 
 /**
@@ -38,7 +34,7 @@ public class ViewPagerAdapter extends FragmentStatePagerAdapter {
         Fragment frag;
         switch (position) {
             case 0:
-                frag = Page1.newInstance(0, "Page2");
+                frag = MainRepliesFragment.newInstance(0, "Page2");
                 break;
             case 1:
                 frag = Page2.newInstance(1, "Page2");

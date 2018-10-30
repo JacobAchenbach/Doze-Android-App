@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:isScrollContainer="false">
+    <RelativeLayout
+        android:id="@+id/main_screen"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/padding_large"
+            android:layout_marginTop="@dimen/padding_large"
+            android:text="Replies"
+            android:textSize="28sp"/>
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingTop="@dimen/item_size_medium"
+            android:paddingBottom="@dimen/item_size_large"
+            android:clipToPadding="false"
+            android:background="@color/transparent"
+            android:overScrollMode="never">
+
+        </android.support.v7.widget.RecyclerView>
+
+        <cache.doze.Views.FunFab
+            android:id="@+id/fab"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:isScrollContainer="false">
+
+        </cache.doze.Views.FunFab>
+
+    </RelativeLayout>
+</RelativeLayout>

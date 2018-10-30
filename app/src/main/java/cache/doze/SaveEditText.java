@@ -5,6 +5,8 @@ import android.util.AttributeSet;
 import android.view.KeyEvent;
 import android.widget.EditText;
 
+import cache.doze.Activities.MainActivity;
+
 /**
  * Created by Chris on 8/27/2018.
  */

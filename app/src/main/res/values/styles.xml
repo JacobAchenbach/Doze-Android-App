@@ -8,6 +8,8 @@
         <item name="colorAccent">@color/colorAccent</item>
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
+        <item name="android:colorBackground">@color/white</item>
+        <item name="android:statusBarColor">@color/colorPrimary</item>
         <!--<item name="android:windowSoftInputMode">adjustNothing</item>-->
 
     </style>

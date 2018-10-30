@@ -3,13 +3,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/main_activity" android:orientation="vertical"
     android:layout_width="match_parent" android:layout_height="match_parent"
-    android:background="@color/light_grey">
+    android:isScrollContainer="false">
 
     <FrameLayout
         android:id="@+id/statusBar"
         android:layout_width="match_parent"
         android:layout_height="@dimen/status_bar_height"
-        android:background="@color/colorPrimaryDark"
+        android:background="@color/colorPrimary"
         android:translationZ="4dp" />
 
     <android.support.v7.widget.Toolbar
@@ -17,7 +17,7 @@
         android:background="@color/colorPrimary"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:elevation="3dp"
+        android:elevation="4dp"
         app:titleTextColor="@color/white">
 
     </android.support.v7.widget.Toolbar>

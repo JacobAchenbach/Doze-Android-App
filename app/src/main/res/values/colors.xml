@@ -16,4 +16,5 @@
     <color name="cream">#c2c2c2</color>
 
     <color name="transparent">#00ffffff</color>
+    <color name="background_material_light">#ffffff</color>
 </resources>

@@ -1,6 +1,5 @@
 package cache.doze.Fragments;
 
-import android.content.ContentResolver;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -32,8 +31,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
-import cache.doze.MainActivity;
-import cache.doze.Contact;
+import cache.doze.Activities.MainActivity;
+import cache.doze.Model.Contact;
 import cache.doze.ContactSelectionAdapter;
 import cache.doze.R;
 import in.myinnos.alphabetsindexfastscrollrecycler.IndexFastScrollRecyclerView;

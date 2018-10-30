@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import cache.doze.Model.Contact;
 import cache.doze.Tools.QuickTools;
 
 /**

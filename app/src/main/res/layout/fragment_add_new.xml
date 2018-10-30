@@ -1,35 +1,102 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent">
-    <?xml version="1.0" encoding="utf-8"?>
-    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:cardView="http://schemas.android.com/tools"
-        android:orientation="vertical"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:fitsSystemWindows="true">
-
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:cardView="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorPrimary">
         <!-- This linear layout setup will auto-adjust
              the size of each element for the given screen size -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:isScrollContainer="false"
-            android:paddingStart="10dp"
-            android:paddingEnd="10dp"
-            android:orientation="vertical"
-            android:background="@color/white"
-            android:weightSum="2"
-            android:id="@+id/container">
+
+<!--    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/white"
+        android:textSize="16sp"
+        android:text="Add New"
+        android:shadowColor="@color/black"
+        android:shadowRadius="2"
+        android:layout_gravity="end"
+        android:layout_marginEnd="@dimen/padding_large"
+        android:layout_marginTop="@dimen/padding_large" />-->
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp">
 
             <!-- Start service -->
             <RelativeLayout
-                android:id="@+id/page1_content_one"
+                android:id="@+id/title_block"
                 android:layout_width="wrap_content"
-                android:layout_height="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:focusable="true"
+                android:focusableInTouchMode="true">
+                <TextView
+                    android:id="@+id/text_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/padding_large"
+                    android:layout_marginStart="@dimen/padding_small"
+                    android:text="Title"
+                    android:textStyle="normal"
+                    android:textSize="24sp"
+                    android:textColor="@color/white"/>
+
+                <android.support.v7.widget.CardView
+                    android:id="@+id/wrapper_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="@dimen/item_size_small"
+                    android:layout_below="@id/text_title"
+                    android:gravity="center"
+                    android:layout_marginTop="@dimen/padding_medium"
+                    android:layout_marginBottom="@dimen/padding_large"
+                    android:layout_marginLeft="@dimen/padding_small"
+                    android:layout_marginRight="@dimen/padding_small"
+                    cardView:cardBackgroundColor="@color/white"
+                    cardView:cardCornerRadius="@dimen/default_rounded_corner"
+                    android:isScrollContainer="false">
+
+                    <!--                    <FrameLayout
+                                            android:id="@+id/reply_text_border"
+                                            android:background="@color/white"
+                                            android:layout_width="match_parent"
+                                            android:layout_height="match_parent" />-->
+
+
+                    <cache.doze.SaveEditText
+                        android:id="@+id/input_title"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentStart="true"
+                        android:layout_marginStart="@dimen/padding_medium"
+                        android:gravity="center_vertical"
+                        android:layout_gravity="center_vertical"
+                        android:hint="Work"
+                        android:background="@android:color/transparent"
+                        android:textColor="@color/black"
+                        android:textCursorDrawable="@drawable/cursor_style"
+                        android:textIsSelectable="true"
+                        android:selectAllOnFocus="false"
+                        android:inputType="textCapSentences"
+                        android:imeOptions="actionDone"
+                        android:scrollHorizontally="false"
+                        android:singleLine="true"
+                        android:maxLines="1"
+                        android:defaultFocusHighlightEnabled="false"/>
+                </android.support.v7.widget.CardView>
+            </RelativeLayout>
+
+            <!-- Start service -->
+            <RelativeLayout
+                android:id="@+id/message_block"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_weight="2"
+                android:layout_below="@id/title_block"
                 android:focusable="true"
                 android:focusableInTouchMode="true">
 
@@ -39,31 +106,34 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/padding_large"
                     android:layout_marginStart="@dimen/padding_small"
-                    android:text="Reply Text"
+                    android:text="Message"
                     android:textStyle="normal"
-                    android:textSize="24sp" />
+                    android:textSize="24sp"
+                    android:textColor="@color/white"/>
 
-                <RelativeLayout
+                <android.support.v7.widget.CardView
                     android:id="@+id/text_viewgroup"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
+                    android:layout_height="@dimen/item_size_xxlarge"
                     android:layout_below="@id/text_reply_header"
                     android:gravity="center"
                     android:layout_marginTop="@dimen/padding_medium"
                     android:layout_marginBottom="@dimen/padding_large"
                     android:layout_marginLeft="@dimen/padding_small"
                     android:layout_marginRight="@dimen/padding_small"
+                    cardView:cardBackgroundColor="@color/white"
+                    cardView:cardCornerRadius="@dimen/default_rounded_corner"
                     android:isScrollContainer="false">
 
-                    <FrameLayout
-                        android:id="@+id/reply_text_border"
-                        android:background="@drawable/outline_blue_rounded"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent" />
+                    <!--                    <FrameLayout
+                                            android:id="@+id/reply_text_border"
+                                            android:background="@color/white"
+                                            android:layout_width="match_parent"
+                                            android:layout_height="match_parent" />-->
 
 
                     <cache.doze.SaveEditText
-                        android:id="@+id/input_text"
+                        android:id="@+id/input_reply_message"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:layout_alignParentStart="true"
@@ -71,23 +141,25 @@
                         android:layout_marginStart="5dp"
                         android:gravity="top"
                         android:background="@android:color/transparent"
+                        android:hint="In a meeting, get back to you soon!"
                         android:textColor="@color/black"
                         android:textCursorDrawable="@drawable/cursor_style"
                         android:textIsSelectable="true"
                         android:selectAllOnFocus="false"
-                        android:inputType="textCapSentences"
+                        android:inputType="textCapSentences|textMultiLine"
                         android:imeOptions="actionDone"
+                        android:maxLines="30"
                         android:scrollHorizontally="false"
                         android:singleLine="false"
                         android:defaultFocusHighlightEnabled="false"/>
-                </RelativeLayout>
+                </android.support.v7.widget.CardView>
             </RelativeLayout>
 
-            <RelativeLayout
+            <!--<RelativeLayout
                 android:id="@+id/page1_content_two"
                 android:layout_width="wrap_content"
                 android:layout_height="0dp"
-                android:layout_weight="1">
+                android:layout_weight="0">
                 <TextView
                     android:id="@+id/text_service_options"
                     android:layout_width="wrap_content"
@@ -149,16 +221,11 @@
                         android:textColorHighlight="@android:color/black" />
 
 
-                </RelativeLayout>
+                </RelativeLayout>-->
 
 
             </RelativeLayout>
 
-
-
-
-
-        </LinearLayout>
 
         <android.support.v7.widget.CardView
             android:id="@+id/expanded_view"
@@ -169,6 +236,5 @@
             cardView:cardElevation="3dp"
             cardView:cardCornerRadius="4dp"/>
 
-    </RelativeLayout>
 
-</LinearLayout>
+</RelativeLayout>

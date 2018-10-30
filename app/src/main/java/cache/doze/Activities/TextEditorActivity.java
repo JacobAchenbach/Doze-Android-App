@@ -9,7 +9,6 @@ import android.util.AttributeSet;
 import android.view.KeyEvent;
 import android.view.WindowManager;
 
-import cache.doze.MainActivity;
 import cache.doze.R;
 
 /**

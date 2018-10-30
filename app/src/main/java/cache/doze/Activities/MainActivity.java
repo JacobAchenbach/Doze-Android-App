@@ -1,44 +1,42 @@
-package cache.doze;
+package cache.doze.Activities;
 
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Notification;
-import android.app.NotificationChannel;
 import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.AppCompatTextView;
 import android.support.v7.widget.Toolbar;
 import android.telephony.SmsManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.ViewGroup;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.EditText;
+import android.view.View;
+import android.view.WindowManager;
 import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import cache.doze.Activities.PermissionsActivity;
-import cache.doze.Fragments.Page1;
+import cache.doze.Fragments.MainRepliesFragment;
 import cache.doze.Fragments.Page2;
+import cache.doze.Model.Contact;
+import cache.doze.Model.ReplyItem;
+import cache.doze.MonitorSmsService;
+import cache.doze.R;
 import cache.doze.Tools.PermissionsHelper;
 import cache.doze.Tools.QuickTools;
+import cache.doze.ViewPagerAdapter;
 import cache.doze.Views.FluidSearchView;
 
 /**
@@ -47,7 +45,7 @@ import cache.doze.Views.FluidSearchView;
 
 public class MainActivity extends AppCompatActivity{
     public static final String PREFS_CHECKED_CONTACTS = "checked_contacts";
-    static final int NOTIFICATION_ID = 95;
+    public static final int NOTIFICATION_ID = 95;
     public static final String CHANNEL_ID = "notif_channel";
     public static final String DEFAULT_PREFS = "default_prefs";
     public static final String PRESET_PREF = "preset";
@@ -73,6 +71,7 @@ public class MainActivity extends AppCompatActivity{
      */
     private static Handler messageTimer = null;
 
+    public static ArrayList<ReplyItem> replyItems;
     public static ArrayList<Contact> contactList = new ArrayList<>();
     public static HashMap<String, Integer> messagedContacts = new HashMap<>();
 
@@ -121,6 +120,13 @@ public class MainActivity extends AppCompatActivity{
 
 
         setSupportActionBar(toolbar = (Toolbar)findViewById(R.id.toolbar));
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+        getWindow().setStatusBarColor(ContextCompat.getColor(this, R.color.colorPrimary));
+        int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+        getWindow().getDecorView().setSystemUiVisibility(uiOptions);
+
+        replyItems = new ArrayList<>();
+        replyItems.add(new ReplyItem("Work", "Currently out of the office, please leave a message!"));
 
         initSearchView();
         initViewPager();
@@ -224,18 +230,16 @@ public class MainActivity extends AppCompatActivity{
                 }
             }
             public void onPageSelected(int position) {
-/*                if(position == 1)
-                    if(!PermissionsHelper.checkReadContactsPermission())getPermissionToReadContacts();*/
-                InputMethodManager imm = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
-                Page1 page1 = (Page1)viewPagerAdapter.getFragment(0);
-                if(page1 == null)return;
-                EditText focusedText = page1.presetInput;
+/*                InputMethodManager imm = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
+                MainRepliesFragment mainRepliesFragment = (MainRepliesFragment)viewPagerAdapter.getFragment(0);
+                if(mainRepliesFragment == null)return;
+                EditText focusedText = mainRepliesFragment.presetInput;
                 if(imm != null && focusedText != null) imm.hideSoftInputFromWindow(focusedText.getWindowToken(), 0);
 
                 if(position == 1){
                     Page2 page2 = (Page2)viewPagerAdapter.getFragment(1);
                     if(page2 == null)return;
-                }
+                }*/
             }
         });
 
@@ -268,6 +272,15 @@ public class MainActivity extends AppCompatActivity{
 
     public void setContactList(ArrayList<Contact> newContactList){contactList = new ArrayList<>(newContactList);}
 
+    public void editReplyItem(ReplyItem replyItem){
+//        ReplyItem current;
+//        for(int i = 0; i < replyItems.size(); i++){
+//            current = replyItems.get(i);
+//            if(current.getId().equalsIgnoreCase(replyItem.getId()));
+//        }
+
+
+    }
 
     //Basic Lifecycle Methods
     @Override
@@ -286,10 +299,10 @@ public class MainActivity extends AppCompatActivity{
     @Override
     protected void onPause(){
         super.onPause();
-        if(viewPagerAdapter == null || ((Page1)viewPagerAdapter.getFragment(0)) == null)return;
+        if(viewPagerAdapter == null || ((MainRepliesFragment)viewPagerAdapter.getFragment(0)) == null)return;
 //        if(fluidSearchView != null && !FluidSearchView.isDetached)
 //            fluidSearchView.detach();
-        MainActivity.preset = ((Page1)viewPagerAdapter.getFragment(0)).getPresetText();
+        //MainActivity.preset = ((MainRepliesFragment)viewPagerAdapter.getFragment(0)).getPresetText();
     }
     @Override
     protected void onStop(){
@@ -301,25 +314,13 @@ public class MainActivity extends AppCompatActivity{
         super.onDestroy();
     }
 
-/*    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        // Check which request we're responding to
-        if (requestCode == 1) {
-            if(((Page1)viewPagerAdapter.getFragment(0)) != null)
-                ((Page1)viewPagerAdapter.getFragment(0)).setEditTextStartPos(data.getIntExtra("start_position", 0));
-
-            preset = data.getStringExtra("return_text");
-            prefs.edit().putString("preset", preset).apply();
-            getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
-        }
-
-    }*/
-
     //Other @Override methods
     @Override
     public void onBackPressed(){
-        //if(viewPagerAdapter != null) Page1 tempPageInst = (Page1)viewPagerAdapter.getFragment(0);
-        //if(tempPageInst.keyboardShowing)tempPageInst.revertZoom();
+        MainRepliesFragment mainRepliesFragment = (MainRepliesFragment) viewPagerAdapter.getFragment(0);
+        if(mainRepliesFragment != null){
+            if(mainRepliesFragment.onBackPressed())return;
+        }
         super.onBackPressed();
     }
     @Override
@@ -343,8 +344,8 @@ public class MainActivity extends AppCompatActivity{
 
     //Handling received messaged
     SmsManager smsManager = SmsManager.getDefault();
-    protected void messageReceived(String address) {
-        if (MainActivity.active && canMessage(address) && MainActivity.messageTimer == null) {
+    public void messageReceived(String address) {
+        if (MainActivity.active && canMessage(address) && !MainActivity.preset.isEmpty() && MainActivity.messageTimer == null) {
             if (!isContactSelected(address)) return;
             smsManager.sendTextMessage(address + "", null, MainActivity.preset + "", null, null);
             Log.i("Sent!", "Message: " + MainActivity.preset);
@@ -401,76 +402,16 @@ public class MainActivity extends AppCompatActivity{
         } else {
             startService(myService);
         }
+
+        Snackbar.make(toolbar.getRootView(), "Reply Service Started!", Snackbar.LENGTH_SHORT).show();
     }
     public void endSMSService(){
         MainActivity.active = false;
         prefs.edit().putBoolean(MainActivity.SERVICE_RUNNING, false).apply();
 
         stopService(new Intent(this, MonitorSmsService.class));
-    }
 
-    /**
-     *  Handle showing/hiding Notification in user's StatusBar
-     */
-    public void showActiveNotif(Context context){
-        if(active)return;
-        active = true;
-        Toast.makeText(context, "Service Started!", Toast.LENGTH_SHORT).show();
-        Intent notifIntent = new Intent(context, MainActivity.class);
-        PendingIntent intent = PendingIntent.getActivity(context,0, notifIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        nMN = (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
-        runningNotification = new Notification.Builder(context);
-        runningNotification
-                .setOngoing(true)
-                .setContentTitle("Doze")
-                .setContentText("Responding to your texts \uD83D\uDE34")
-                .setSmallIcon(R.drawable.ic_launcher_foreground)
-                .setContentIntent(intent)
-                .setPriority(Notification.PRIORITY_HIGH);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-
-            NotificationChannel channel = new NotificationChannel(CHANNEL_ID,
-                    "Reply Service",
-                    NotificationManager.IMPORTANCE_DEFAULT);
-            nMN.createNotificationChannel(channel);
-            runningNotification.setChannelId(CHANNEL_ID);
-        }
-
-        nMN.notify(1, runningNotification.build());
-
-        messagedContacts.clear();
-        Log.i("Service status", "Service Started!");
-    }
-    public void removeActiveNotif(){
-        if(active) {
-            active = false;
-            try{nMN.cancel(NOTIFICATION_ID);}catch (Exception e){Log.e("No notification", "No notification showing with ID " +NOTIFICATION_ID +" error:" +e.toString());}
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                nMN.deleteNotificationChannel(CHANNEL_ID);
-            }
-
-            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
-                    && nMN.getNotificationChannel(CHANNEL_ID) != null){
-                checkShowing(0);
-            }
-
-
-            Log.i("Service status", "Service Stopped");
-        }
-    }
-    //Sometimes it isn't removed right away so this checks if it's gone, 3 times
-    private void checkShowing(final int count){
-        final Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            @TargetApi(Build.VERSION_CODES.O)
-            @Override
-            public void run() {
-                if(count < 3)
-                nMN.deleteNotificationChannel(CHANNEL_ID);
-                if(nMN.getNotificationChannel(CHANNEL_ID) != null) checkShowing(count + 1);
-            }
-        }, 1000);
+        Snackbar.make(toolbar.getRootView(), "Reply Service Dismissed", Snackbar.LENGTH_SHORT).show();
     }
 
 
@@ -540,5 +481,7 @@ public class MainActivity extends AppCompatActivity{
     public Toolbar getToolbar(){
         return toolbar;
     }
+
+
 
 }

@@ -10,7 +10,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -18,9 +17,10 @@ import android.provider.Telephony;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.telephony.SmsMessage;
-import android.widget.Toast;
 
 import java.util.Random;
+
+import cache.doze.Activities.MainActivity;
 
 /**
  * Created by Chris on 1/17/2018.
@@ -31,8 +31,8 @@ public class MonitorSmsService extends Service {
     Notification.Builder runningNotification;
     NotificationCompat.Builder runningCompatNotification;
     private String[] randomSynonyms = {"Hey, you", "Circumspect!", "Alert!",
-            "Attention!", "Notice!", "Heads Up!", "Bedbugs be Gone!", "How Exciting!",
-            "Good News!", "We Got You", "Sweet Dreams", ":)", "It Begins...", "\"Title\"", "String", "Doze is Cool and,"};
+            "Attention!", "Notice!", "Heads Up!", "How Exciting!",
+            "Good News!", "We Got You", ":)", "It Begins...", "\"Nice\"", "Doze is Cool and,"};
 
     @Override
     public IBinder onBind(Intent arg0) {
@@ -57,7 +57,7 @@ public class MonitorSmsService extends Service {
                     .setContentTitle(randomMsg)
                     .setContentText("Doze is responding to your texts \uD83D\uDE34")
                     .setSmallIcon(R.drawable.app_icon)
-                    .setColor(ContextCompat.getColor(context, R.color.cream))
+                    .setColor(ContextCompat.getColor(context, R.color.colorAccent))
                     .setContentIntent(pi)
                     .setAutoCancel(true);
 

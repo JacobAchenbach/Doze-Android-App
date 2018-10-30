@@ -1,4 +1,4 @@
-package cache.doze;
+package cache.doze.Model;
 
 import android.graphics.Bitmap;
 
