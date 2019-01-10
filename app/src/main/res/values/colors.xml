@@ -3,17 +3,23 @@
     <color name="colorPrimary">#29b6f6</color>
     <color name="colorPrimaryDark">#0086c3</color>
     <color name="colorAccent">#73e8ff</color>
+    <color name="colorAccenaat">#73e8ff</color>
+    <color name="colorAccentTest">#ff9800</color>
     <color name="colorAccentDarker">#98c1c4</color>
     <color name="background">#ffffff</color>
 
     <color name="main_blue">#3f7cb5</color>
     <color name="light_blue">#bef3fd</color>
     <color name="faded_blue">#002c40</color>
+    <color name="thatsGoodGreen">#00e500</color>
+    <color name="thatsBadRed">#cc0000</color>
+    <color name="temp">#29b6f6</color>
 
     <color name="black">#4e4e4e</color>
-    <color name="light_grey">#96dcdcdc</color>
+    <color name="light_gray">#96dcdcdc</color>
     <color name="white">#fff</color>
     <color name="cream">#c2c2c2</color>
+    <color name="light_cream">#dadada</color>
 
     <color name="transparent">#00ffffff</color>
     <color name="background_material_light">#ffffff</color>

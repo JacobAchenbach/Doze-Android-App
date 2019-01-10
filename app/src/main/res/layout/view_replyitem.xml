@@ -4,7 +4,7 @@
     android:id="@+id/background"
     android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="@dimen/item_size_large"
+    android:layout_height="@dimen/item_size_reply"
     android:layout_marginTop="@dimen/padding_large"
     android:layout_marginStart="@dimen/padding_large"
     android:layout_marginEnd="@dimen/padding_large"
@@ -28,24 +28,29 @@
             android:id="@+id/enabled_indicator"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@drawable/blue_gradient"
             android:visibility="gone"/>
 
-        <Button
+        <View
+            android:id="@+id/wrapper_item_options"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_alignParentEnd="true">
+        </View>
+        <ImageView
             android:id="@+id/item_options"
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:layout_alignParentEnd="true"
             android:layout_marginEnd="@dimen/padding_large"
             android:layout_marginTop="@dimen/padding_medium"
-            android:background="@drawable/baseline_arrow_drop_down_white_24"
+            android:background="@drawable/baseline_more_horiz_black_24"
             android:backgroundTint="@color/black"/>
 
         <TextView
             android:id="@+id/title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="@dimen/padding_xlarge"
+            android:layout_marginEnd="@dimen/item_size_medium"
             android:layout_marginStart="@dimen/padding_xlarge"
             android:layout_marginTop="@dimen/padding_medium"
             android:singleLine="true"
@@ -53,17 +58,32 @@
             android:textSize="20sp"
             android:text="Work"/>
 
-        <TextView
-            android:id="@+id/reply_text"
+        <LinearLayout
+            android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_below="@id/title"
-            android:layout_marginTop="@dimen/padding_small"
             android:layout_marginStart="@dimen/padding_xlarge"
             android:layout_marginEnd="@dimen/padding_xlarge"
-            android:layout_marginBottom="@dimen/padding_medium"
-            android:ellipsize="end"
-            android:text="Cooking my cat, talk soon."/>
+            android:layout_below="@id/title"
+            android:weightSum="4">
+            <TextView
+                android:id="@+id/reply_text"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="3"
+                android:layout_marginTop="@dimen/padding_small"
+                android:maxLines="3"
+                android:ellipsize="end"
+                android:textSize="14sp"
+                android:text="Cooking my cat, talk soon."/>
+            <TextView
+                android:id="@+id/reply_contacts_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Dave, Robert, Bobert and 12 others..."
+                android:textColor="@color/cream"/>
+        </LinearLayout>
+
     </RelativeLayout>
 
 

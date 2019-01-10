@@ -4,23 +4,12 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorPrimary">
+    android:background="@color/transparent">
         <!-- This linear layout setup will auto-adjust
              the size of each element for the given screen size -->
 
-<!--    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textColor="@color/white"
-        android:textSize="16sp"
-        android:text="Add New"
-        android:shadowColor="@color/black"
-        android:shadowRadius="2"
-        android:layout_gravity="end"
-        android:layout_marginEnd="@dimen/padding_large"
-        android:layout_marginTop="@dimen/padding_large" />-->
-
-    <RelativeLayout
+    <LinearLayout
+        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingStart="10dp"
@@ -40,10 +29,15 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/padding_large"
                     android:layout_marginStart="@dimen/padding_small"
+                    android:paddingEnd="@dimen/padding_small"
                     android:text="Title"
                     android:textStyle="normal"
                     android:textSize="24sp"
-                    android:textColor="@color/white"/>
+                    android:textColor="@color/white"
+                    android:shadowColor="@color/black"
+                    android:shadowDx="4"
+                    android:shadowDy="4"
+                    android:shadowRadius="10"/>
 
                 <android.support.v7.widget.CardView
                     android:id="@+id/wrapper_title"
@@ -53,9 +47,9 @@
                     android:layout_below="@id/text_title"
                     android:gravity="center"
                     android:layout_marginTop="@dimen/padding_medium"
-                    android:layout_marginBottom="@dimen/padding_large"
                     android:layout_marginLeft="@dimen/padding_small"
                     android:layout_marginRight="@dimen/padding_small"
+                    android:layout_marginBottom="@dimen/padding_large"
                     cardView:cardBackgroundColor="@color/white"
                     cardView:cardCornerRadius="@dimen/default_rounded_corner"
                     android:isScrollContainer="false">
@@ -72,7 +66,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_alignParentStart="true"
-                        android:layout_marginStart="@dimen/padding_medium"
+                        android:paddingStart="@dimen/padding_medium"
+                        android:paddingEnd="@dimen/padding_medium"
                         android:gravity="center_vertical"
                         android:layout_gravity="center_vertical"
                         android:hint="Work"
@@ -96,7 +91,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="2"
-                android:layout_below="@id/title_block"
                 android:focusable="true"
                 android:focusableInTouchMode="true">
 
@@ -106,19 +100,23 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/padding_large"
                     android:layout_marginStart="@dimen/padding_small"
+                    android:paddingEnd="@dimen/padding_small"
                     android:text="Message"
                     android:textStyle="normal"
                     android:textSize="24sp"
-                    android:textColor="@color/white"/>
+                    android:textColor="@color/white"
+                    android:shadowColor="@color/black"
+                    android:shadowDx="4"
+                    android:shadowDy="4"
+                    android:shadowRadius="10"/>
 
                 <android.support.v7.widget.CardView
-                    android:id="@+id/text_viewgroup"
+                    android:id="@+id/wrapper_message"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/item_size_xxlarge"
                     android:layout_below="@id/text_reply_header"
                     android:gravity="center"
                     android:layout_marginTop="@dimen/padding_medium"
-                    android:layout_marginBottom="@dimen/padding_large"
                     android:layout_marginLeft="@dimen/padding_small"
                     android:layout_marginRight="@dimen/padding_small"
                     cardView:cardBackgroundColor="@color/white"
@@ -137,8 +135,9 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:layout_alignParentStart="true"
-                        android:layout_marginTop="10dp"
-                        android:layout_marginStart="5dp"
+                        android:paddingTop="@dimen/padding_medium"
+                        android:paddingStart="@dimen/padding_medium"
+                        android:paddingEnd="@dimen/padding_medium"
                         android:gravity="top"
                         android:background="@android:color/transparent"
                         android:hint="In a meeting, get back to you soon!"
@@ -153,8 +152,68 @@
                         android:singleLine="false"
                         android:defaultFocusHighlightEnabled="false"/>
                 </android.support.v7.widget.CardView>
+                <LinearLayout
+                    android:id="@+id/error_no_title"
+                    android:layout_below="@id/wrapper_message"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/padding_medium"
+                    android:layout_marginStart="@dimen/padding_small"
+                    android:gravity="center"
+                    android:visibility="invisible">
+                    <ImageView
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:background="@drawable/baseline_error_outline_black_24"
+                        android:backgroundTint="@color/thatsBadRed"
+                        android:layout_marginEnd="@dimen/padding_medium"/>
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:elevation="@dimen/cardview_default_elevation"
+                        android:text="No need to be shy, say something!"
+                        android:fontFamily="monospace"
+                        android:textSize="14sp"
+                        android:textColor="@color/thatsBadRed"
+                        android:shadowColor="@color/white"/>
+                </LinearLayout>
             </RelativeLayout>
 
+        <LinearLayout
+            android:id="@+id/add_contacts_wrapper"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/padding_xlarge"
+            android:padding="@dimen/padding_medium"
+            android:layout_gravity="center_horizontal"
+            android:background="@drawable/button_border_white">
+            <TextView
+                android:id="@+id/add_contacts_button"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:paddingEnd="@dimen/padding_medium"
+                android:background="@color/transparent"
+                android:text="Edit Contacts"
+                android:textSize="16sp"
+                android:layout_gravity="center_vertical"
+                android:fontFamily="monospace"
+                android:textStyle="normal"
+                android:textAllCaps="true"
+                android:elevation="2dp"
+                android:textColor="@color/white"/>
+            <LinearLayout
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:gravity="center">
+                <ImageView
+                    android:id="@+id/cancel_image"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/baseline_group_add_black_36"
+                    android:backgroundTint="@color/white"
+                    android:elevation="4dp" />
+            </LinearLayout>
+        </LinearLayout>
             <!--<RelativeLayout
                 android:id="@+id/page1_content_two"
                 android:layout_width="wrap_content"
@@ -224,17 +283,6 @@
                 </RelativeLayout>-->
 
 
-            </RelativeLayout>
-
-
-        <android.support.v7.widget.CardView
-            android:id="@+id/expanded_view"
-            cardView:cardBackgroundColor="@color/black"
-            android:visibility="invisible"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            cardView:cardElevation="3dp"
-            cardView:cardCornerRadius="4dp"/>
-
+            </LinearLayout>
 
 </RelativeLayout>

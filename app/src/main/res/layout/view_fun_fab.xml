@@ -35,7 +35,7 @@
                 android:paddingEnd="@dimen/padding_xlarge"
                 android:paddingBottom="@dimen/padding_large"
                 android:layout_alignParentEnd="true"
-                android:gravity="center"
+                android:gravity="end|center_vertical"
                 android:visibility="gone">
                 <TextView
                     android:id="@+id/submit_button"
@@ -46,15 +46,22 @@
                     android:text="Save"
                     android:fontFamily="monospace"
                     android:textStyle="bold"
-                    android:textAllCaps="false"
+                    android:textAllCaps="true"
                     android:elevation="2dp"
-                    android:textColor="@color/white"/>
-                <ImageView
+                    android:textColor="@color/white" />
+                <LinearLayout
                     android:layout_width="16dp"
                     android:layout_height="16dp"
-                    android:background="@drawable/baseline_check_black_18"
-                    android:backgroundTint="@color/white"
-                    />
+                    android:gravity="center">
+                    <ImageView
+                        android:id="@+id/submit_image"
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:background="@drawable/baseline_check_black_18"
+                        android:backgroundTint="@color/white"
+                        />
+                </LinearLayout>
+
             </LinearLayout>
 
             <LinearLayout
@@ -64,7 +71,7 @@
                 android:paddingTop="@dimen/padding_xlarge"
                 android:paddingStart="@dimen/padding_xlarge"
                 android:paddingBottom="@dimen/padding_large"
-                android:gravity="center"
+                android:gravity="start|center_vertical"
                 android:visibility="gone">
                 <TextView
                     android:id="@+id/cancel_button"
@@ -75,15 +82,21 @@
                     android:text="Cancel"
                     android:fontFamily="monospace"
                     android:textStyle="bold"
-                    android:textAllCaps="false"
+                    android:textAllCaps="true"
                     android:elevation="2dp"
-                    android:textColor="@color/white"/>
-                <ImageView
+                    android:textColor="@color/white" />
+                <LinearLayout
                     android:layout_width="16dp"
                     android:layout_height="16dp"
-                    android:background="@drawable/baseline_close_black_18"
-                    android:backgroundTint="@color/white"
-                    />
+                    android:gravity="center">
+                    <ImageView
+                        android:id="@+id/cancel_image"
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:background="@drawable/baseline_close_black_18"
+                        android:backgroundTint="@color/white"
+                        android:elevation="4dp" />
+                </LinearLayout>
             </LinearLayout>
 
             <View

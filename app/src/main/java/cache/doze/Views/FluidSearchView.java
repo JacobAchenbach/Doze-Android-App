@@ -523,7 +523,8 @@ public class FluidSearchView extends FrameLayout{
     }
 
     public void hide(){
-        root.setVisibility(View.GONE);
+        if(root != null)
+            root.setVisibility(View.GONE);
     }
 
     public void detach(){

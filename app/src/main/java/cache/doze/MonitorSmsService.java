@@ -75,7 +75,7 @@ public class MonitorSmsService extends Service {
                     .setSmallIcon(R.drawable.app_icon)
                     .setContentIntent(pi)
                     .setAutoCancel(true)
-                    .setPriority(NotificationCompat.PRIORITY_LOW);
+                    .setPriority(NotificationCompat.PRIORITY_MIN);
 
             Notification notification = runningCompatNotification.build();
             startForeground(MainActivity.NOTIFICATION_ID, notification);
@@ -92,7 +92,7 @@ public class MonitorSmsService extends Service {
     private void createChannel(){
         NotificationChannel channel = new NotificationChannel(MainActivity.CHANNEL_ID,
                 "Reply Service",
-                NotificationManager.IMPORTANCE_LOW);
+                NotificationManager.IMPORTANCE_HIGH);
         nMN.createNotificationChannel(channel);
         runningNotification.setChannelId(MainActivity.CHANNEL_ID);
     }
@@ -115,9 +115,11 @@ public class MonitorSmsService extends Service {
             Bundle intentExtras = intent.getExtras();
             String smsBody = "";
             String address = "";
+            String number = "";
             for (SmsMessage smsMessage : Telephony.Sms.Intents.getMessagesFromIntent(intent)) {
                 smsBody += smsMessage.getMessageBody();
                 address = smsMessage.getDisplayOriginatingAddress();
+                number = smsMessage.getServiceCenterAddress();
             }
 
             MainActivity inst = new MainActivity();

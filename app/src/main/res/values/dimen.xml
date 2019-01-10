@@ -12,6 +12,11 @@
     <dimen name="item_size_large">94dp</dimen>
     <dimen name="item_size_xlarge">132dp</dimen>
     <dimen name="item_size_xxlarge">164dp</dimen>
+    <dimen name="item_size_phat">196dp</dimen>
+
+    <dimen name="item_size_reply">112dp</dimen>
+
+    <dimen name="button_width_large">256dp</dimen>
 
     <dimen name="sliding_view_size">264dp</dimen>
 

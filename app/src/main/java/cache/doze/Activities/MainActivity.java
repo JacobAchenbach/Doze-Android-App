@@ -1,5 +1,6 @@
 package cache.doze.Activities;
 
+import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -9,10 +10,9 @@ import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Parcelable;
 import android.support.design.widget.Snackbar;
-import android.support.design.widget.TabLayout;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.telephony.SmsManager;
@@ -22,29 +22,36 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.ImageView;
 import android.widget.Toast;
+
+import com.google.gson.Gson;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import cache.doze.Fragments.AddContactsFragment;
+import cache.doze.Fragments.AddNewReplyFragment;
+import cache.doze.Fragments.DozeFragment;
 import cache.doze.Fragments.MainRepliesFragment;
-import cache.doze.Fragments.Page2;
 import cache.doze.Model.Contact;
 import cache.doze.Model.ReplyItem;
 import cache.doze.MonitorSmsService;
 import cache.doze.R;
 import cache.doze.Tools.PermissionsHelper;
 import cache.doze.Tools.QuickTools;
-import cache.doze.ViewPagerAdapter;
 import cache.doze.Views.FluidSearchView;
+import cache.doze.Views.FunFab.FunFab;
 
 /**
  * Created by Chris on 1/9/2018.
  */
 
 public class MainActivity extends AppCompatActivity{
-    public static final String PREFS_CHECKED_CONTACTS = "checked_contacts";
+    public static final String PREFS_REPLY_ITEMS = "reply_items";
     public static final int NOTIFICATION_ID = 95;
     public static final String CHANNEL_ID = "notif_channel";
     public static final String DEFAULT_PREFS = "default_prefs";
@@ -54,30 +61,31 @@ public class MainActivity extends AppCompatActivity{
 
     public static boolean active = false;
     public static String preset;
-    boolean welcomeScreen = true;
 
     private SharedPreferences prefs;
     NotificationManager nMN;
     Notification.Builder runningNotification;
 
     public FluidSearchView fluidSearchView;
+    MainRepliesFragment mainRepliesFragment;
+    AddContactsFragment addContactsFragment;
+    FunFab fab;
 
 
     DisplayMetrics displayMetrics;
-    int maxTimesMessaged = 1;
+    int maxTimesMessaged = 5;
+    boolean welcomeScreen = true;
 
     /**
      * Timer to prevent accidental spam to recipient
      */
     private static Handler messageTimer = null;
+    private static int messageSpamTime = 1000;
 
     public static ArrayList<ReplyItem> replyItems;
     public static ArrayList<Contact> contactList = new ArrayList<>();
     public static HashMap<String, Integer> messagedContacts = new HashMap<>();
 
-    ViewPager viewPager;
-    ViewPagerAdapter viewPagerAdapter;
-    TabLayout tabLayout;
     Toolbar toolbar;
 
 
@@ -126,81 +134,47 @@ public class MainActivity extends AppCompatActivity{
         getWindow().getDecorView().setSystemUiVisibility(uiOptions);
 
         replyItems = new ArrayList<>();
-        replyItems.add(new ReplyItem("Work", "Currently out of the office, please leave a message!"));
+        //replyItems.add(new ReplyItem("Work", "Currently out of the office, please leave a message!"));
+
+        if(mainRepliesFragment == null){
+            mainRepliesFragment = new MainRepliesFragment();
+            getSupportFragmentManager().beginTransaction()
+                    .add(R.id.replies_container, mainRepliesFragment, "Main_Replies").commitAllowingStateLoss();
+            mainRepliesFragment.setFab(fab = findViewById(R.id.fab));
+            mainRepliesFragment.isShown = true;
+        }
+
+        if(addContactsFragment == null){
+            addContactsFragment = new AddContactsFragment();
+            getSupportFragmentManager().beginTransaction()
+                    .add(R.id.add_contacts_container, addContactsFragment, "Add_Contacts").commitAllowingStateLoss();
+            addContactsFragment.isShown = false;
+            addContactsFragment.setFab(fab);
+            //addContactsFragment.populateContactAddresses(true);
+        }
 
         initSearchView();
-        initViewPager();
         //initKeyboardListener();
 
     }
 
+    public void showContactsFrag(ReplyItem replyItem){
+        mainRepliesFragment.slideOutLeft();
+        addContactsFragment.slideInRight();
+        addContactsFragment.setReplyItem(replyItem);
+    }
+
+    public void showMainRepliesFrag(){
+        addContactsFragment.slideOutRight();
+        mainRepliesFragment.slideInLeft();
+    }
+
+    public void setFabExpanded(){
+
+    }
+
     private void initViewPager(){
-        viewPager = findViewById(R.id.view_pager);
-        viewPagerAdapter = new ViewPagerAdapter(getBaseContext(), getSupportFragmentManager(), tabLayout);
-        viewPager.setAdapter(viewPagerAdapter);
-
-        /*tabLayout = (TabLayout) findViewById(R.id.sliding_tabs);
-        tabLayout.setupWithViewPager(viewPager);
-        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
-            @Override
-            public void onTabSelected(TabLayout.Tab tab) {
-
-            }
-
-            @Override
-            public void onTabUnselected(TabLayout.Tab tab) {
-
-            }
-
-            @Override
-            public void onTabReselected(TabLayout.Tab tab) {
-                if(tab == tabLayout.getTabAt(1)){
-                    Page2 page2 = (Page2)viewPagerAdapter.getFragment(1);
-                    if(page2 != null)page2.scrollRecyclerView(0);
-                }
-            }
-        });
-        viewPager.post(new Runnable() {
-            @Override
-            public void run() {
-                for(int n = 0; n < tabLayout.getTabCount(); n++){
-                    TabLayout.Tab tab = tabLayout.getTabAt(n);
-                    if(tab != null)tab.setIcon(getIcon(n));
-
-                    ViewGroup child = (ViewGroup)((ViewGroup)tabLayout.getChildAt(0)).getChildAt(n);
-
-                    if(child != null && child.getChildAt(1) instanceof AppCompatTextView){
-                        TextView text = (TextView) child.getChildAt(1);
-                        if(text != null) text.setTextSize(QuickTools.convertDpToPx(tabLayout.getContext(), 12));
-
-                    }
-                }
-            }
-            private Drawable getIcon(int index){
-                Drawable drawable;
-                switch (index) {
-                    case 0:
-                        drawable = ContextCompat.getDrawable(tabLayout.getContext(), R.drawable.baseline_home_black_36);
-                        break;
-                    case 1:
-                        drawable = ContextCompat.getDrawable(tabLayout.getContext(), R.drawable.baseline_contacts_black_36);
-                        break;
-                    default:
-                        drawable = ContextCompat.getDrawable(tabLayout.getContext(), R.drawable.baseline_home_black_36);
-                }
-                if(drawable != null) drawable.setTint(ContextCompat.getColor(tabLayout.getContext(), R.color.white));
-                return drawable;
-            }
-        });*/
-
-        viewPager.getCurrentItem();
-
-        viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
-            ImageView searchMag = fluidSearchView.getMagIcon();
-            public void onPageScrollStateChanged(int state) {}
-            int startMagX;
-            int endMagX = -1;
-            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+/*
                 if(searchMag == null){
                     searchMag = fluidSearchView.getMagIcon();
                     return;
@@ -228,27 +202,7 @@ public class MainActivity extends AppCompatActivity{
                     startMagX = endMagX + QuickTools.convertDpToPx(searchMag.getContext(), 8);
                     searchMag.setX(startMagX);
                 }
-            }
-            public void onPageSelected(int position) {
-/*                InputMethodManager imm = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
-                MainRepliesFragment mainRepliesFragment = (MainRepliesFragment)viewPagerAdapter.getFragment(0);
-                if(mainRepliesFragment == null)return;
-                EditText focusedText = mainRepliesFragment.presetInput;
-                if(imm != null && focusedText != null) imm.hideSoftInputFromWindow(focusedText.getWindowToken(), 0);
-
-                if(position == 1){
-                    Page2 page2 = (Page2)viewPagerAdapter.getFragment(1);
-                    if(page2 == null)return;
-                }*/
-            }
-        });
-
-        viewPager.post(new Runnable() {
-            @Override
-            public void run() {
-                fluidSearchView.setOnQueryTextListener((Page2) viewPagerAdapter.getFragment(1));
-            }
-        });
+            }*/
     }
 
     private void initSearchView(){
@@ -256,6 +210,8 @@ public class MainActivity extends AppCompatActivity{
 
         fluidSearchView = new FluidSearchView(toolbar, this);
         if(FluidSearchView.isDetached) fluidSearchView.build();
+        fluidSearchView.hide();
+        //fluidSearchView.setOnQueryTextListener(qqqq);
     }
 
     public boolean getReplyAll(){
@@ -272,34 +228,52 @@ public class MainActivity extends AppCompatActivity{
 
     public void setContactList(ArrayList<Contact> newContactList){contactList = new ArrayList<>(newContactList);}
 
-    public void editReplyItem(ReplyItem replyItem){
-//        ReplyItem current;
-//        for(int i = 0; i < replyItems.size(); i++){
-//            current = replyItems.get(i);
-//            if(current.getId().equalsIgnoreCase(replyItem.getId()));
-//        }
+    public void setToolbarPositive(String text){
+        toolbar.setTitle(text);
+        animateToolbarColor(ContextCompat.getColor(getBaseContext(), R.color.colorPrimary), ContextCompat.getColor(getBaseContext(), R.color.thatsGoodGreen));
+    }
 
+    private int savedToolbarColor;
+    public void setToolbarColor(int from, int to){
+        animateToolbarColor(from, to);
+    }
+    public void setToolbarColor(int to){
+        animateToolbarColor(savedToolbarColor, ContextCompat.getColor(getBaseContext(), R.color.colorPrimary));
+    }
 
+    private void animateToolbarColor(int from, int to){
+        savedToolbarColor = to;
+        ValueAnimator marginBottomAnimation = ValueAnimator.ofArgb(from, to).setDuration(250);
+        marginBottomAnimation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator valueAnimator) {
+                int color = (Integer) valueAnimator.getAnimatedValue();
+                toolbar.setBackgroundColor(color);
+                getWindow().setStatusBarColor(color);
+            }
+        });
+        marginBottomAnimation.start();
     }
 
     //Basic Lifecycle Methods
     @Override
     public void onStart() {
         super.onStart();
+        //getPrefs().edit().putString(MainActivity.PREFS_REPLY_ITEMS, "").apply();
+
     }
     @Override
     protected void onResume(){
         super.onResume();
         if(MainActivity.preset != null) MainActivity.preset = prefs.getString("preset", MainActivity.preset);
+        refreshReplyItems();
 //        if(fluidSearchView != null && FluidSearchView.isDetached)
 //            fluidSearchView.build();
-        if(viewPagerAdapter != null && viewPagerAdapter.getFragment(1) != null && fluidSearchView != null)
-            fluidSearchView.setOnQueryTextListener((Page2) viewPagerAdapter.getFragment(1));
     }
     @Override
     protected void onPause(){
+        saveReplyItems();
         super.onPause();
-        if(viewPagerAdapter == null || ((MainRepliesFragment)viewPagerAdapter.getFragment(0)) == null)return;
 //        if(fluidSearchView != null && !FluidSearchView.isDetached)
 //            fluidSearchView.detach();
         //MainActivity.preset = ((MainRepliesFragment)viewPagerAdapter.getFragment(0)).getPresetText();
@@ -317,9 +291,10 @@ public class MainActivity extends AppCompatActivity{
     //Other @Override methods
     @Override
     public void onBackPressed(){
-        MainRepliesFragment mainRepliesFragment = (MainRepliesFragment) viewPagerAdapter.getFragment(0);
-        if(mainRepliesFragment != null){
-            if(mainRepliesFragment.onBackPressed())return;
+        for(DozeFragment dozeFragment: DozeFragment.dozeFragments){
+            if(dozeFragment.isShown){
+                if(dozeFragment.onBackPressed())return;
+            }
         }
         super.onBackPressed();
     }
@@ -344,7 +319,20 @@ public class MainActivity extends AppCompatActivity{
 
     //Handling received messaged
     SmsManager smsManager = SmsManager.getDefault();
-    public void messageReceived(String address) {
+    public void messageReceived(String number) {
+        for(ReplyItem replyItem: replyItems){
+            if(!replyItem.isChecked())continue;
+
+            if(replyItem.getContacts() == null || replyItem.getContacts().isEmpty()){
+                sendText(number, replyItem.getReplyText());
+                continue;
+            }
+
+            if(replyItem.hasContact(number)){
+                sendText(number, replyItem.getReplyText());
+            }
+        }
+        /*
         if (MainActivity.active && canMessage(address) && !MainActivity.preset.isEmpty() && MainActivity.messageTimer == null) {
             if (!isContactSelected(address)) return;
             smsManager.sendTextMessage(address + "", null, MainActivity.preset + "", null, null);
@@ -356,8 +344,14 @@ public class MainActivity extends AppCompatActivity{
                 public void run() {
                     MainActivity.messageTimer = null;
                 }
-            }, 5000);
+            }, messageSpamTime);
         }
+        */
+    }
+
+    private void sendText(String address, String msgBody){
+        smsManager.sendTextMessage(address + "", null, msgBody, null, null);
+        Log.i("Sent!", "Message: " + msgBody);
     }
 
     //Make sure we aren't messaging someone too many times
@@ -386,12 +380,12 @@ public class MainActivity extends AppCompatActivity{
             c.setSelected(checked);
         }
 
-        Page2 page2 =
-                (Page2) viewPagerAdapter.getFragment(1);
-        page2.updateCheckStates();
+//        AddContactsFragment page2 =
+//                (AddContactsFragment) viewPagerAdapter.getFragment(1);
+//        page2.updateCheckStates();
     }
 
-    public void startSMSService(){
+    public Snackbar startSMSService(){
         MainActivity.active = true;
         prefs.edit().putBoolean(MainActivity.SERVICE_RUNNING, true).apply();
 
@@ -402,16 +396,19 @@ public class MainActivity extends AppCompatActivity{
         } else {
             startService(myService);
         }
-
-        Snackbar.make(toolbar.getRootView(), "Reply Service Started!", Snackbar.LENGTH_SHORT).show();
+        Snackbar snackbar = Snackbar.make(toolbar.getRootView(), "Reply Service Started!", Snackbar.LENGTH_SHORT);
+        snackbar.show();
+        return snackbar;
     }
-    public void endSMSService(){
+    public Snackbar endSMSService(){
         MainActivity.active = false;
         prefs.edit().putBoolean(MainActivity.SERVICE_RUNNING, false).apply();
 
         stopService(new Intent(this, MonitorSmsService.class));
 
-        Snackbar.make(toolbar.getRootView(), "Reply Service Dismissed", Snackbar.LENGTH_SHORT).show();
+        Snackbar snackbar = Snackbar.make(toolbar.getRootView(), "Reply Service Dismissed", Snackbar.LENGTH_SHORT);
+        snackbar.show();
+        return snackbar;
     }
 
 
@@ -480,6 +477,47 @@ public class MainActivity extends AppCompatActivity{
 
     public Toolbar getToolbar(){
         return toolbar;
+    }
+
+    private void saveReplyItems(){
+        JSONArray replyItemsJSON = new JSONArray();
+        try{
+            ArrayList<ReplyItem> replyItems = MainActivity.replyItems;
+            for (int i = 0; i < replyItems.size(); i++) {
+                JSONObject replyJSON = new JSONObject();
+                Gson gson = new Gson();
+                String json = gson.toJson(replyItems.get(i));
+                replyJSON.put(String.valueOf(i), json);
+                replyItemsJSON.put(replyJSON);
+            }
+        }catch(JSONException e) {
+            e.printStackTrace();
+        }
+
+        getPrefs().edit().putString(MainActivity.PREFS_REPLY_ITEMS, replyItemsJSON.toString()).apply();
+    }
+
+    private void refreshReplyItems(){
+        ArrayList<ReplyItem> storedReplyItems = new ArrayList<>();
+        String jsonString = getPrefs().getString(MainActivity.PREFS_REPLY_ITEMS, "");
+        try{
+            JSONArray replyItemsJSON = new JSONArray(jsonString);
+            for(int i = 0; i < replyItemsJSON.length(); i++){
+                JSONObject replyJSON = (JSONObject) replyItemsJSON.get(i);
+                Gson gson = new Gson();
+                String json = (String) replyJSON.get(String.valueOf(i));
+                ReplyItem replyItem = gson.fromJson(json, ReplyItem.class);
+                storedReplyItems.add(replyItem);
+            }
+        }catch (JSONException e){
+            e.printStackTrace();
+        }
+
+        if(storedReplyItems.isEmpty())return;
+
+        replyItems.clear();
+        replyItems.addAll(storedReplyItems);
+        AddNewReplyFragment.updateUsedNumbers(replyItems);
     }
 
 

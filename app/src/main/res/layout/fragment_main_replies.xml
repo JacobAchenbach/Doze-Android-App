@@ -23,20 +23,14 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:paddingTop="@dimen/item_size_medium"
-            android:paddingBottom="@dimen/item_size_large"
+            android:paddingBottom="@dimen/item_size_xlarge"
             android:clipToPadding="false"
             android:background="@color/transparent"
-            android:overScrollMode="never">
+            android:overScrollMode="never"
+            android:scrollbars="none"
+            android:scrollbarSize="@dimen/padding_medium">
 
         </android.support.v7.widget.RecyclerView>
-
-        <cache.doze.Views.FunFab
-            android:id="@+id/fab"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:isScrollContainer="false">
-
-        </cache.doze.Views.FunFab>
 
     </RelativeLayout>
 </RelativeLayout>

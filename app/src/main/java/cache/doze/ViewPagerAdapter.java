@@ -10,7 +10,7 @@ import android.support.v4.content.ContextCompat;
 import android.util.SparseArray;
 
 import cache.doze.Fragments.MainRepliesFragment;
-import cache.doze.Fragments.Page2;
+import cache.doze.Fragments.AddContactsFragment;
 
 /**
  * Created by Chris on 2/22/2018.
@@ -34,10 +34,10 @@ public class ViewPagerAdapter extends FragmentStatePagerAdapter {
         Fragment frag;
         switch (position) {
             case 0:
-                frag = MainRepliesFragment.newInstance(0, "Page2");
+                frag = MainRepliesFragment.newInstance(0, "AddContactsFragment");
                 break;
             case 1:
-                frag = Page2.newInstance(1, "Page2");
+                frag = AddContactsFragment.newInstance(1, "AddContactsFragment");
                 break;
             default:
                 frag = null;

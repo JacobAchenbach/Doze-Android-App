@@ -18,6 +18,9 @@ import android.widget.RelativeLayout;
 import android.widget.SectionIndexer;
 import android.widget.TextView;
 
+import com.futuremind.recyclerviewfastscroll.SectionTitleProvider;
+import com.timehop.stickyheadersrecyclerview.StickyRecyclerHeadersAdapter;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -29,7 +32,7 @@ import cache.doze.Tools.QuickTools;
  * Created by Chris on 2/15/2018.
  */
 
-public class ContactSelectionAdapter extends RecyclerView.Adapter<ContactSelectionAdapter.ViewHolder> implements SectionIndexer {
+public class ContactSelectionAdapter extends RecyclerView.Adapter<ContactSelectionAdapter.ViewHolder> implements SectionIndexer, SectionTitleProvider, StickyRecyclerHeadersAdapter {
 
     private List<Contact> allContacts;
     private List<Contact> contacts;
@@ -204,6 +207,30 @@ public class ContactSelectionAdapter extends RecyclerView.Adapter<ContactSelecti
     }
 
     @Override
+    public long getHeaderId(int position) {
+        if (position == -1) {
+            return -1;
+        } else {
+            char charr = contacts.get(position).getAddress().charAt(0);
+            return charr;
+        }
+    }
+
+    @Override
+    public HeaderViewHolder onCreateHeaderViewHolder(ViewGroup parent) {
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.view_recycler_header, parent, false);
+        return new HeaderViewHolder(view) {
+        };
+    }
+
+    @Override
+    public void onBindHeaderViewHolder(RecyclerView.ViewHolder holder, int position) {
+        TextView textView = (TextView)((HeaderViewHolder)holder).title;
+        textView.setText(String.valueOf(allContacts.get(position).getAddress().charAt(0)));
+    }
+
+    @Override
     public int getItemCount() {
         return contacts.size();
     }
@@ -243,10 +270,22 @@ public class ContactSelectionAdapter extends RecyclerView.Adapter<ContactSelecti
         }
     }
 
+    public class HeaderViewHolder extends RecyclerView.ViewHolder{
+        public TextView title;
+
+        public HeaderViewHolder(View itemView) {
+            super(itemView);
+            title = (TextView) itemView.findViewById(R.id.title);
+        }
+
+    }
+
     @Override
     public int getSectionForPosition(int position) {
         return 0;
     }
+
+
 
     @Override
     public Object[] getSections() {
@@ -265,6 +304,11 @@ public class ContactSelectionAdapter extends RecyclerView.Adapter<ContactSelecti
     @Override
     public int getPositionForSection(int sectionIndex) {
         return mSectionPositions.get(sectionIndex);
+    }
+
+    @Override
+    public String getSectionTitle(int position){
+        return contacts.get(position).getAddress().substring(0, 1);
     }
 
     public void updateChecked(int startPos, int endPos){

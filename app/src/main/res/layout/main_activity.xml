@@ -41,14 +41,34 @@
         app:tabIndicatorColor="@color/light_blue"
         app:tabMode="fixed" />-->
 
-    <android.support.v4.view.ViewPager
-        android:id="@+id/view_pager"
-        android:layout_below="@id/toolbar"
-        android:layout_height="wrap_content"
+
+    <RelativeLayout
+        android:id="@+id/main_container"
         android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:isScrollContainer="false"
+        android:layout_below="@id/toolbar">
+        <RelativeLayout
+            android:id="@+id/replies_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+        </RelativeLayout>
+        <RelativeLayout
+            android:id="@+id/add_contacts_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+        </RelativeLayout>
+
+    </RelativeLayout>
+
+    <cache.doze.Views.FunFab.FunFab
+        android:id="@+id/fab"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:isScrollContainer="false">
 
-
-    </android.support.v4.view.ViewPager>
+    </cache.doze.Views.FunFab.FunFab>
 
 </RelativeLayout>
