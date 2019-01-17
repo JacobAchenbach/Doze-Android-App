@@ -1,11 +1,10 @@
 package cache.doze.Views.FunFab;
 
 /**
- * Created by Chris on 12/12/2018.
+ * Created by Chris on 1/10/2019.
  */
 
-class FabStateContainer implements FabState {
-
+public class FabStateMenu implements FabState{
     @Override
     public void expand(boolean show, boolean fast) {
 

@@ -5,4 +5,5 @@ package cache.doze.Views.FunFab;
  */
 
 interface FabState {
+    public void expand(boolean show, boolean fast);
 }

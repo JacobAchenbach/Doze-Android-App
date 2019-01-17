@@ -46,6 +46,16 @@
             android:background="@drawable/baseline_more_horiz_black_24"
             android:backgroundTint="@color/black"/>
 
+        <ImageView
+            android:id="@+id/item_drag"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="@dimen/padding_large"
+            android:background="@drawable/baseline_drag_handle_24"
+            android:visibility="invisible"/>
+
         <TextView
             android:id="@+id/title"
             android:layout_width="match_parent"

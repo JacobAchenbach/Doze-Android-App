@@ -69,7 +69,7 @@ public class ReplyItem implements Serializable{
     }
 
     public GradientDrawable getGradientTurned(GradientDrawable.Orientation orientation){
-        if(orientation == null || bgDrawable.getConstantState() == null)return null;
+        if(orientation == null || bgDrawable == null || bgDrawable.getConstantState() == null)return null;
 
         GradientDrawable rotated = (GradientDrawable) bgDrawable.getConstantState().newDrawable().mutate();
         rotated.setOrientation(orientation);
@@ -77,7 +77,7 @@ public class ReplyItem implements Serializable{
     }
 
     public GradientDrawable getGradientLighter(){
-        if(bgDrawable.getConstantState() == null) return null;
+        if(bgDrawable == null || bgDrawable.getConstantState() == null) return null;
 
         float factor = 0.3f;
         int[] lighterColors = new int[drawableColors.length];
@@ -116,7 +116,7 @@ public class ReplyItem implements Serializable{
         this.contacts = contacts;
     }
     public ArrayList<Contact> getContacts() {
-        return contacts;
+        return contacts != null? contacts: new ArrayList<Contact>();
     }
     public void setReplyText(String replyText) {
         this.replyText = replyText;

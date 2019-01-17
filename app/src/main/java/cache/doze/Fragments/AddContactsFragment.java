@@ -85,25 +85,31 @@ public class AddContactsFragment extends DozeFragment implements SearchView.OnQu
 
     public void setReplyItem(ReplyItem replyItem) {
         this.replyItem = replyItem;
-        //updateCheckedStates();
+        updateCheckedStates();
     }
 
     private void updateCheckedStates(){
-        ArrayList<Contact> newContacts = replyItem.getContacts();
-        if(newContacts != null){
-            loading(true);
+        if(replyItem == null)return;
+
+        ArrayList<Contact> newContacts = new ArrayList<>(replyItem.getContacts());
+        if(!newContacts.isEmpty()){
             ArrayList<Contact> contactList = mainActivity.getContactList();
             for(int i = 0; i < contactList.size(); i++){
+                Contact listedContact = contactList.get(i);
+                listedContact.setSelected(false);
                 for(int j = 0; j < newContacts.size(); j++){
-                    if(contactList.get(i).getId().equalsIgnoreCase(newContacts.get(j).getId())) {
-                        contactList.get(i).setSelected(newContacts.get(j).getSelected());
-                        j = newContacts.size();
-                    }
+                    Contact replyContact = newContacts.get(j);
+                    if(listedContact.getId().equalsIgnoreCase(replyContact.getId()))
+                        listedContact.setSelected(true);
                 }
             }
-            loading(false);
         }
-
+        else{
+            for(Contact contact: mainActivity.getContactList())
+                contact.setSelected(false);
+        }
+        if(adapter != null)
+            adapter.notifyDataSetChanged();
     }
 
     @Override
@@ -141,6 +147,8 @@ public class AddContactsFragment extends DozeFragment implements SearchView.OnQu
             progressBar.setVisibility(View.INVISIBLE);
             notifText.setVisibility(View.INVISIBLE);
         }
+        if(isShown)
+            fab.hide();
         //if(recyclerView != null && adapter != null && adapter.getItemCount() > AddContactsFragment.recyclerViewScrollPos) recyclerView.scrollToPosition(AddContactsFragment.recyclerViewScrollPos);
     }
 
@@ -148,6 +156,7 @@ public class AddContactsFragment extends DozeFragment implements SearchView.OnQu
     public void onPause(){
         super.onPause();
         if(!mainActivity.getContactList().isEmpty())saveCheckedContacts();
+        fab.show();
 
     }
 
@@ -270,9 +279,6 @@ public class AddContactsFragment extends DozeFragment implements SearchView.OnQu
 
 
     private void saveCheckedContacts(){
-        ArrayList<Contact> contacts = mainActivity.getContactList();
-
-
         if(replyItem == null)return;
         ArrayList<Contact> selectedContacts = new ArrayList<>();
         for(Contact contact: mainActivity.getContactList()){
@@ -381,7 +387,6 @@ public class AddContactsFragment extends DozeFragment implements SearchView.OnQu
         protected void onPostExecute(ArrayList<Contact> contactList){
             super.onPostExecute(contactList);
 
-
             if(contactList.isEmpty()){
                 progressBar.setVisibility(View.GONE);
                 notifText.setText("No Contacts to show :/");
@@ -398,6 +403,7 @@ public class AddContactsFragment extends DozeFragment implements SearchView.OnQu
             mainActivity.setContactList(contactList);
 
             setUpAdapter();
+            updateCheckedStates();
 
             if(swipeRefresh != null)swipeRefresh.setRefreshing(false);
             loading(false);

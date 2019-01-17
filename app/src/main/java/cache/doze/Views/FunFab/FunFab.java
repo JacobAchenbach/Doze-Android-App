@@ -2,6 +2,7 @@ package cache.doze.Views.FunFab;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.animation.AnimatorSet;
 import android.animation.ArgbEvaluator;
 import android.animation.ObjectAnimator;
 import android.animation.PropertyValuesHolder;
@@ -13,6 +14,9 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Handler;
 import android.os.IBinder;
+import android.support.animation.DynamicAnimation;
+import android.support.animation.FlingAnimation;
+import android.support.animation.SpringAnimation;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
@@ -25,8 +29,10 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewPropertyAnimator;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.AccelerateInterpolator;
+import android.view.animation.DecelerateInterpolator;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -75,6 +81,7 @@ public class FunFab extends CardView{
     private int marginBottom;
 
     private boolean open = false;
+    private boolean suspended = false;
     private boolean animating = false;
     private boolean doSubmit = false;
     private boolean doCancel = false;
@@ -84,9 +91,7 @@ public class FunFab extends CardView{
     private final int START_ANIM_TIME = 100;
     private final int END_ANIM_TIME = 250;
 
-    final int STATE_FRAGMENT_CONTAINER = 0;
-    final int STATE_OPTIONS = 1;
-    private int currentState = 0;
+    private FabState currentState;
 
     public FunFab(Context context){
         super(context);
@@ -151,7 +156,7 @@ public class FunFab extends CardView{
         marginBottom = -1;
         marginEnd = -1;
         openY = -1;
-        currentState = 0;
+        currentState = new FabStateContainer();
 
         setupCloseBorder();
         setupOnClick();
@@ -173,8 +178,11 @@ public class FunFab extends CardView{
             public boolean onTouch(View v, MotionEvent event) {
                 float fabTop = fabView.getY();
                 float evY = event.getY();
-                if(evY < fabTop && open) {
-                    expandFab(false, true);
+                if(evY < fabTop && open && !suspended) {
+                    if(suspendable && !animating)
+                        swipeExpand(false, 1);
+                    else
+                        expandFab(false, true);
                 }
                 return false;
             }
@@ -223,6 +231,7 @@ public class FunFab extends CardView{
     private void expand(boolean show, boolean fast){
         if(animating) return;
         animating = true;
+        //currentState.expand(show, fast);
         dist = 0;
         final int startTime = !fast? START_ANIM_TIME: START_ANIM_TIME*2/3;
         final int endTime = !fast? END_ANIM_TIME: END_ANIM_TIME*2/3;
@@ -231,7 +240,7 @@ public class FunFab extends CardView{
         if(marginEnd == -1)marginEnd = fabLP.getMarginEnd();
         if(marginBottom == -1)marginBottom = fabLP.bottomMargin;
         if(originalX == -1 && marginEnd != -1)originalX = screenWidth - marginEnd * 2- funFabClosedWH * 2;
-        if(originalY == -1 && marginBottom != -1)originalY = screenHeight - marginBottom - funFabClosedWH * 2;
+        if(originalY == -1)originalY = screenHeight - funFabClosedWH;
         if(openY == -1){
             openY = screenHeight - openH + marginBottom;
             maxY = openY - extraHeight;
@@ -292,6 +301,13 @@ public class FunFab extends CardView{
 
 
     private void openFab(int startTime, int endTime){
+        if(suspended){
+            swipeExpand(true, 0);
+            suspend(false);
+            animating = false;
+            return;
+        }
+
         //Animate icon out
         icon.animate().alpha(0f).setDuration(startTime).start();
 
@@ -364,11 +380,10 @@ public class FunFab extends CardView{
     private void closeFab(int startTime, int endTime){
         if(fabSubmitListener != null && doSubmit)fabSubmitListener.onSubmit();
         if(fabCancelListener != null && doCancel)fabCancelListener.onCancel();
-        doSubmit = doCancel = false;
+        doSubmit = doCancel = suspended = false;
 
         //Animate icon in
         icon.animate().alpha(1f).setStartDelay(startTime).setDuration(100).start();
-
 
         //Change bottom margins to fit screen
         ValueAnimator marginBottomAnimation = ValueAnimator.ofInt(fabLP.bottomMargin, marginBottom).setDuration(endTime);
@@ -427,7 +442,6 @@ public class FunFab extends CardView{
 
         if(toTopAnimation != null) toTopAnimation.cancel();
 
-        fabView.animate().y(screenHeight - marginBottom - funFabClosedWH).setDuration(endTime).start();
 
         setViewVisibility(false, startTime, endTime);
 
@@ -442,6 +456,10 @@ public class FunFab extends CardView{
                 open = !open;
                 if(fabExpandListener != null)fabExpandListener.onFabExpanded(open);
                 animating = false;
+                if(!open){
+                    fabView.animate().y(originalY).setDuration(endTime).start();
+                    setFadedBackground(startTime, false);
+                }
             }
         }, open? endTime: startTime + endTime);
     }
@@ -449,10 +467,11 @@ public class FunFab extends CardView{
     private void setViewVisibility(boolean show, int startTime, int endTime){
         if(expandedView == null || fragment == null)return;
 
-        if(show){
-            rootView.setClickable(true);
-            rootView.setFocusable(true);
+        rootView.setClickable(show);
+        rootView.setFocusable(show);
+        setFadedBackground(startTime, show);
 
+        if(show){
             expandedView.setAlpha(0f);
             expandedView.setVisibility(View.VISIBLE);
             expandedView.animate().alpha(1f).setStartDelay(endTime).setDuration(startTime).start();
@@ -491,11 +510,6 @@ public class FunFab extends CardView{
             divider.setVisibility(View.VISIBLE);
             divider.animate().alpha(1f).setDuration(endTime).start();
 
-            ObjectAnimator backgroundAnim = ObjectAnimator.ofPropertyValuesHolder(rootView.getBackground(),
-                            PropertyValuesHolder.ofInt("alpha", 0, (int)(255 * 0.25f)));
-            backgroundAnim.setDuration(startTime + endTime);
-            backgroundAnim.start();
-
             fragment.onResume();
         }else {
             rootView.setClickable(false);
@@ -533,173 +547,49 @@ public class FunFab extends CardView{
             divider.animate().alpha(0f).setDuration(startTime).start();
 
             fabView.requestFocus();
-            fragment.onPause();
 
-            ObjectAnimator backgroundAnim = ObjectAnimator.ofPropertyValuesHolder(rootView.getBackground(),
-                    PropertyValuesHolder.ofInt("alpha", rootView.getBackground().getAlpha(), 0));
-            backgroundAnim.setDuration(startTime);
-            backgroundAnim.start();
+            fragment.onPause();
         }
+    }
+
+    boolean backgroundShowing = false;
+    private void setFadedBackground(int animTime, boolean enabled){
+        backgroundShowing = enabled;
+        rootView.setClickable(enabled);
+        rootView.setFocusable(enabled);
+        ObjectAnimator backgroundAnim = ObjectAnimator.ofPropertyValuesHolder(rootView.getBackground(),
+                PropertyValuesHolder.ofInt("alpha", rootView.getBackground().getAlpha(), enabled? (int) (255 * 0.25f): 0));
+        backgroundAnim.setDuration(animTime);
+        backgroundAnim.start();
     }
 
     public void expandFab(boolean show, boolean fast){
         expand(show, fast);
     }
 
-    public void setFabState(int state){
-        if(state != 0 && state != 1)return;
+    public void setFabState(FabState state){
+        if(state == null) return;
 
         currentState = state;
     }
 
+    public void hide(){
+        fabView.animate().alpha(0f).setDuration(END_ANIM_TIME).start();
+        fabView.setClickable(false);
+        fabView.setFocusable(false);
+    }
+
+    public void show(){
+        fabView.animate().alpha(1f).setDuration(START_ANIM_TIME).start();
+        fabView.setClickable(true);
+        fabView.setFocusable(true);
+    }
+
+
     /**
-     * STATE_FRAGMENT_CONTAINER
+     * Moves the fab whenever a SnackBar is shown
      *
-     * All of the code for when the FunFab is a container for a Fragment
      */
-    boolean viewFlung;
-    boolean wasClick;
-    float lastY;
-    float maxY;
-    float minY;
-    float dist; //Distance to drag view, when dist = 0: the view is in the starting position and hasn't been dragged yet
-    float moveAmt;
-    ObjectAnimator toTopAnimation;
-
-    @SuppressLint("ClickableViewAccessibility")
-    public void setDraggable() {
-        final GestureDetector flingDetector = new GestureDetector(context, new FlingGestureDetector());
-
-        minY = screenHeight - extraHeight - funFabClosedWH;
-        OnTouchListener touchListener = new OnTouchListener() {
-            boolean scrolledUp;
-
-
-            @Override
-            public boolean onTouch(View view, MotionEvent ev) {
-                if (ev.getPointerCount() > 1 || !open || animating)
-                    return false;
-
-                flingDetector.onTouchEvent(ev);
-
-                switch (ev.getActionMasked()) {
-                    case MotionEvent.ACTION_DOWN:
-                        wasClick = true;
-
-                        lastY = ev.getY();
-                        break;
-                    case MotionEvent.ACTION_MOVE:
-                        float curY = ev.getY();
-                        float change = lastY - curY;
-                        scrolledUp = lastY - curY > 0;
-
-
-                        if(Math.abs(change) > 10)
-                            wasClick = doSubmit = doCancel = false;
-
-                        //Basically prevents scroll from "twitching" when user uses 2 fingers
-                        if (Math.abs(change) > 200)
-                            lastY = curY;
-
-                        dist += change; // dist is negative as you move down the screen
-
-                        //For temporarily disabling scroll
-                        if (!open || viewFlung || wasClick) {
-                            if(wasClick) {
-                                dist -= change;
-                                if (view == submitButton) doSubmit = true;
-                                else if (view == cancelButton) doCancel = true;
-                            }
-                            break;
-                        }
-
-                        //Close any keyboards if scrolling down
-                        if(!scrolledUp){
-                            hideKeyboard(context, getWindowToken());
-                        }
-
-                        float y = fabView.getY();
-/*                        if(y < openY){ //Below thresh
-                            float threshDistance = openY - maxY;
-                            float perc = dist / threshDistance;
-                            if(perc > 1)perc = 1f;
-                            dist = dist - (threshDistance)* (1 - perc);
-                        }*/
-
-                        moveAmt = -dist * 0.55f;
-                        float newY = openY + moveAmt;
-
-                        //Clamping move amount to either bound
-                        if (newY < maxY)
-                            newY = maxY;
-                        else if (newY > minY) {
-                            if(open && !animating) {
-                                ViewGroup.LayoutParams layoutParams = fabView.getLayoutParams();
-                                layoutParams.height = screenHeight - fabView.getTop() + (int) extraHeight;
-                                fabView.setLayoutParams(layoutParams);
-                                expand(false);
-                            }
-                            return false;
-                        }
-
-
-                        if(open && !animating)
-                            fabView.setY(newY);
-
-                        break;
-                    case MotionEvent.ACTION_UP:
-                        if(openY + moveAmt < openY) {
-                            swipeExpand(true);
-                            dist = 0;
-                        }else if(!viewFlung && !scrolledUp && (openY + moveAmt > screenHeight - openH * 3/5f)){
-                            expand(false);
-                        }
-                        lastY = 0;
-                        viewFlung = false;
-                        //if(dist < openY - moveAmt) bounce();
-                        break;
-                }
-                return false;
-            }
-        };
-
-
-        fabView.setOnTouchListener(touchListener);
-        submitButton.setOnTouchListener(touchListener);
-        cancelButton.setOnTouchListener(touchListener);
-    }
-
-    class FlingGestureDetector extends android.view.GestureDetector.SimpleOnGestureListener{
-        @Override
-        public boolean onDown(MotionEvent event) {
-            return false;
-        }
-
-
-        @Override
-        public boolean onFling(MotionEvent event1, MotionEvent event2,
-                               float velocityX, float velocityY) {
-            if(Math.abs(velocityY) > 800) {
-                swipeExpand(velocityY < 0);
-                viewFlung = true;
-            }
-            return false;
-        }
-    }
-
-    private void swipeExpand(boolean expand){
-        if(expand){
-            toTopAnimation = ObjectAnimator.ofFloat(fabView, "y", fabView.getY(), openY).setDuration(100);
-            toTopAnimation.start();
-            dist = 0;
-        }else {
-            ViewGroup.LayoutParams layoutParams = fabView.getLayoutParams();
-            layoutParams.height = screenHeight - getTop() + (int) extraHeight;
-            fabView.setLayoutParams(layoutParams);
-            expand(false, true);
-        }
-    }
-
     Handler handler = null;
     Runnable runnable = new Runnable() {
         @Override
@@ -750,7 +640,9 @@ public class FunFab extends CardView{
         }
         public void waitAndHide(){
             handler = null;
-            fabView.animate().y(fabView.getY() + (snackbar.getView().getHeight())).setDuration(250).start();
+            if(originalY == -1)originalY = screenHeight - funFabClosedWH;
+            if(!open)fabView.animate().y(originalY).setDuration(250).start();
+            else fabView.animate().y(openY).setDuration(250).start();
         }
     }
     public void moveForSnackBar(Snackbar snackbar){
@@ -759,6 +651,253 @@ public class FunFab extends CardView{
         fabView.clearAnimation();
         snackbar.getView().post(snackBarRunnable = new SnackRunnable(snackbar));
     }
+
+
+    /**
+     * STATE_FRAGMENT_CONTAINER
+     *
+     * All of the code for when the FunFab is a container for a Fragment
+     */
+    boolean viewFlung;
+    boolean wasClick;
+    boolean suspendable;
+    float change;
+    float lastY;
+    float maxY;
+    float minY;
+    float dist; //Distance to drag view, when dist = 0: the view is in the starting position and hasn't been dragged yet
+    float moveAmt;
+    ObjectAnimator toTopAnimation;
+
+    final float SMOOTH_FACTOR = 0.55f;
+
+    @SuppressLint("ClickableViewAccessibility")
+    public void setDraggable() {
+        final GestureDetector flingDetector = new GestureDetector(context, new FlingGestureDetector());
+
+        minY = screenHeight - getResources().getDimension(R.dimen.item_size_medium);
+        OnTouchListener touchListener = new OnTouchListener() {
+            boolean scrolledUp;
+
+
+            @Override
+            public boolean onTouch(View view, MotionEvent ev) {
+                if (ev.getPointerCount() > 1 || !open || animating)
+                    return false;
+
+                flingDetector.onTouchEvent(ev);
+
+                switch (ev.getActionMasked()) {
+                    case MotionEvent.ACTION_DOWN:
+                        wasClick = true;
+
+                        lastY = ev.getY();
+                        break;
+                    case MotionEvent.ACTION_MOVE:
+                        float curY = ev.getY();
+                        change = lastY - curY;
+                        scrolledUp = lastY - curY > 0;
+
+                        if(scrolledUp && !backgroundShowing) {
+                            suspend(false);
+                        }
+
+                        //This lets us know that the user is not trying to click anything
+                        // due to the amount they moved after putting their finger down
+                        if(Math.abs(change) > 10)
+                            wasClick = doSubmit = doCancel = false;
+
+                        //Basically prevents scroll from "twitching" when user uses 2 fingers
+                        if (Math.abs(change) > 200)
+                            lastY = curY;
+
+                        dist += change; // dist is negative as you move down the screen
+
+                        //For temporarily disabling scroll
+                        if (!open || viewFlung || wasClick) {
+                            if(wasClick) {
+                                dist -= change;
+                                if (view == submitButton) doSubmit = true;
+                                else if (view == cancelButton) doCancel = true;
+                            }
+                            break;
+                        }
+
+                        //Close any keyboards if scrolling down
+                        if(!scrolledUp){
+                            hideKeyboard(context, getWindowToken());
+                        }
+
+                        float y = fabView.getY();
+
+                        moveAmt = -dist * SMOOTH_FACTOR;
+                        float newY = openY + moveAmt;
+
+                        //Clamping move amount to either bound
+                        if (newY < maxY)
+                            newY = maxY;
+                        else if (newY > minY && !suspended) {
+                            if(suspendable)
+                                suspend(true);
+                            else if(open && !animating) {
+                                ViewGroup.LayoutParams layoutParams = fabView.getLayoutParams();
+                                layoutParams.height = screenHeight - fabView.getTop() + (int) extraHeight;
+                                fabView.setLayoutParams(layoutParams);
+                                fabView.animate().y(originalY).setDuration(END_ANIM_TIME).start();
+                                expand(false);
+                            }
+                            return false;
+                        }else if(newY > minY){
+                            newY = minY;
+                            dist -= change;
+                        }
+
+
+                        if(open && !animating)
+                            fabView.setY(newY);
+
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        if(openY + moveAmt < openY && !animating) {
+                            toTopAnimation = ObjectAnimator.ofFloat(fabView, "y", fabView.getY(), openY);
+                            toTopAnimation.addListener(new AnimatorListenerAdapter() {
+                                @Override
+                                public void onAnimationCancel(Animator animation) {
+                                    super.onAnimationCancel(animation);
+                                    end();
+                                }
+                                @Override
+                                public void onAnimationEnd(Animator animation) {
+                                    super.onAnimationEnd(animation);
+                                    end();
+                                }
+                                private void end(){
+                                    animating = false;
+                                }
+                            });
+                            toTopAnimation.setDuration(100).start();
+                            dist = 0;
+                            animating = true;
+                        }else if(!viewFlung && !scrolledUp && (openY + moveAmt > screenHeight - openH * 3/5f)){
+                            //expand(false);
+                        }
+                        lastY = 0;
+                        viewFlung = false;
+                        //if(dist < openY - moveAmt) bounce();
+                        break;
+                }
+                return false;
+            }
+        };
+
+
+        fabView.setOnTouchListener(touchListener);
+        submitButton.setOnTouchListener(touchListener);
+        cancelButton.setOnTouchListener(touchListener);
+    }
+
+    class FlingGestureDetector extends android.view.GestureDetector.SimpleOnGestureListener{
+        @Override
+        public boolean onDown(MotionEvent event) {
+            return false;
+        }
+
+
+        @Override
+        public boolean onFling(MotionEvent event1, MotionEvent event2,
+                               float velocityX, float velocityY) {
+            if(Math.abs(velocityY) > 800) {
+                swipeExpand(velocityY < 0, velocityY);
+                viewFlung = true;
+            }else{
+//                if(velocityY > 500)
+//                    verticalFling(fabView, velocityY, 0, velocityY);
+//                else
+//                    verticalFling(fabView, velocityY, 0, screenHeight - openY - getResources().getDimension(R.dimen.item_size_medium));
+            }
+            return false;
+        }
+    }
+
+    private void swipeExpand(boolean expand, float velocity){
+        if(expand){
+            verticalFling(fabView, velocity, 0, openY, true);
+            dist = 0;
+        }else {
+            if(suspendable)
+                lockSheetBottom(velocity);
+            else {
+                ViewGroup.LayoutParams layoutParams = fabView.getLayoutParams();
+                layoutParams.height = screenHeight - getTop() + (int) extraHeight;
+                fabView.setLayoutParams(layoutParams);
+                fabView.animate().y(originalY).setDuration(END_ANIM_TIME * 2/3).start();
+                expand(false, true);
+            }
+        }
+    }
+
+    private void lockSheetBottom(float velocity){
+        if(open){
+            suspended = true;
+            final float destination = screenHeight - openY - getResources().getDimension(R.dimen.item_size_medium);
+            verticalFling(fabView, velocity, 0, destination, true);
+            setDist(minY);
+            setFadedBackground(END_ANIM_TIME, false);
+        }
+    }
+
+    public void setSuspendable(boolean suspendable){
+        this.suspendable = suspendable;
+    }
+
+    private void suspend(boolean suspended){
+        this.suspended = suspended;
+        setFadedBackground(END_ANIM_TIME, !suspended);
+    }
+
+    private void verticalFling(final View view, float velocity, float from, float to) {
+        verticalFling(view, velocity, from, to, false);
+    }
+    private void verticalFling(final View view, float velocity, float from, float to, boolean doubleSpeed){
+        FlingAnimation flingAnimation = new FlingAnimation(view, DynamicAnimation.TRANSLATION_Y);
+        if(velocity > 0) {
+            if (velocity < to * 3) velocity = to * 3;
+        }
+        else {
+            float ty = view.getTranslationY();
+            if (view.getY() - screenHeight - openY - velocity < (screenHeight - openY) * 3) velocity = -(screenHeight - openY) * 3;
+        }
+        if(doubleSpeed)
+            velocity *= 1.5f;
+
+        flingAnimation.setStartVelocity(velocity).setMinValue(0).setMaxValue(velocity > 0? to: -velocity).setFriction(0.5f);
+        flingAnimation.addEndListener(new DynamicAnimation.OnAnimationEndListener() {
+            @Override
+            public void onAnimationEnd(DynamicAnimation animation, boolean canceled, float value, float velocity) {
+                if (!canceled && Math.abs(velocity) > 200) {
+                    SpringAnimation sa = new SpringAnimation(view,
+                            DynamicAnimation.TRANSLATION_Y, value);
+                    sa.setStartVelocity(velocity);
+                    sa.start();
+                }
+                animating = false;
+            }
+        });
+        try {
+            flingAnimation.start();
+            animating = true;
+        }catch (Exception e){
+            e.printStackTrace();
+            //view.animate().y(minY).setDuration(END_ANIM_TIME).setInterpolator(new AccelerateDecelerateInterpolator()).start();
+        }
+    }
+
+    private void setDist(float newY){
+        lastY = 0;
+        this.dist = -(newY - openY)/SMOOTH_FACTOR;
+    }
+
+
 
     public void setIcon(Drawable icon){
         this.icon.setBackground(icon);
@@ -845,6 +984,11 @@ public class FunFab extends CardView{
         if(imm != null) imm.hideSoftInputFromWindow(token, 0);
     }
 
+
+    /**
+     * Handles the interfaces for listeners
+     *
+     */
     public interface FabExpandListener{
         void onFabExpanded(boolean shown);
     }

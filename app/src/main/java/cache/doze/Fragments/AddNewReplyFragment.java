@@ -36,8 +36,8 @@ public class AddNewReplyFragment extends Fragment {
 
     private int currentState;
 
-    final static int STATE_ADD_NEW = 0;
-    final static int STATE_EDITING = 1;
+    public final static int STATE_ADD_NEW = 0;
+    public final static int STATE_EDITING = 1;
 
     private OnContactsButtonPressedListener onContactsButtonPressedListener;
 
@@ -179,7 +179,7 @@ public class AddNewReplyFragment extends Fragment {
         for(int i = 0; i < replyItems.size(); i++){
             String title = replyItems.get(i).getTitle();
             String[] split;
-            if(!(split = title.split(" "))[0].equalsIgnoreCase("reply"))return;
+            if(!(split = title.split(" "))[0].equalsIgnoreCase("reply"))continue;
 
             int num;
             try{

@@ -48,11 +48,13 @@
     </RelativeLayout>
     -->
 
+
     <android.support.v4.widget.SwipeRefreshLayout
         android:id="@+id/swipe_refresh"
         android:background="@android:color/transparent"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:layout_above="@id/quick_buttons">
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/recycler_view"
@@ -70,6 +72,33 @@
 
 
     </android.support.v4.widget.SwipeRefreshLayout>
+
+    <android.support.v7.widget.CardView
+        android:id="@+id/quick_buttons"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/item_size_medium"
+        android:layout_alignParentBottom="true"
+        app:cardCornerRadius="8dp"
+        app:cardElevation="6dp"
+        android:background="@color/transparent"
+        app:cardBackgroundColor="@color/orange"
+        android:clipChildren="true">
+
+
+        <CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/padding_xxlarge"
+            android:layout_gravity="end|center_vertical"
+            android:buttonTint="@color/white"/>
+
+    </android.support.v7.widget.CardView>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="12dp"
+        android:background="@color/orange"
+        android:layout_alignParentBottom="true"
+        android:layout_marginTop="6dp"/>
 
 
     <ProgressBar

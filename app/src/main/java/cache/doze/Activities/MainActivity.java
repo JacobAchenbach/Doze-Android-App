@@ -10,7 +10,6 @@ import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Parcelable;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -42,7 +41,6 @@ import cache.doze.Model.ReplyItem;
 import cache.doze.MonitorSmsService;
 import cache.doze.R;
 import cache.doze.Tools.PermissionsHelper;
-import cache.doze.Tools.QuickTools;
 import cache.doze.Views.FluidSearchView;
 import cache.doze.Views.FunFab.FunFab;
 
@@ -108,7 +106,7 @@ public class MainActivity extends AppCompatActivity{
     }
 
     private void startApp(){
-        setContentView(R.layout.main_activity);
+        setContentView(R.layout.activity_main);
 
         prefs = getSharedPreferences(MainActivity.DEFAULT_PREFS, Context.MODE_PRIVATE);
         MainActivity.preset = prefs.getString("preset", "");
@@ -135,12 +133,13 @@ public class MainActivity extends AppCompatActivity{
 
         replyItems = new ArrayList<>();
         //replyItems.add(new ReplyItem("Work", "Currently out of the office, please leave a message!"));
+        fab = findViewById(R.id.fab);
 
         if(mainRepliesFragment == null){
             mainRepliesFragment = new MainRepliesFragment();
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.replies_container, mainRepliesFragment, "Main_Replies").commitAllowingStateLoss();
-            mainRepliesFragment.setFab(fab = findViewById(R.id.fab));
+            mainRepliesFragment.setFab(fab);
             mainRepliesFragment.isShown = true;
         }
 
@@ -150,7 +149,6 @@ public class MainActivity extends AppCompatActivity{
                     .add(R.id.add_contacts_container, addContactsFragment, "Add_Contacts").commitAllowingStateLoss();
             addContactsFragment.isShown = false;
             addContactsFragment.setFab(fab);
-            //addContactsFragment.populateContactAddresses(true);
         }
 
         initSearchView();
@@ -167,6 +165,10 @@ public class MainActivity extends AppCompatActivity{
     public void showMainRepliesFrag(){
         addContactsFragment.slideOutRight();
         mainRepliesFragment.slideInLeft();
+    }
+
+    public FunFab getFab(){
+        return fab == null? findViewById(R.id.fab): fab;
     }
 
     public void setFabExpanded(){
@@ -350,6 +352,14 @@ public class MainActivity extends AppCompatActivity{
     }
 
     private void sendText(String address, String msgBody){
+        messageTimer = new Handler();
+        MainActivity.messageTimer.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                MainActivity.messageTimer = null;
+            }
+        }, messageSpamTime);
+
         smsManager.sendTextMessage(address + "", null, msgBody, null, null);
         Log.i("Sent!", "Message: " + msgBody);
     }
@@ -386,6 +396,8 @@ public class MainActivity extends AppCompatActivity{
     }
 
     public Snackbar startSMSService(){
+        if(checkRunning(1))return null;
+
         MainActivity.active = true;
         prefs.edit().putBoolean(MainActivity.SERVICE_RUNNING, true).apply();
 
@@ -401,6 +413,8 @@ public class MainActivity extends AppCompatActivity{
         return snackbar;
     }
     public Snackbar endSMSService(){
+        if(checkRunning(0))return null;
+
         MainActivity.active = false;
         prefs.edit().putBoolean(MainActivity.SERVICE_RUNNING, false).apply();
 
@@ -409,6 +423,18 @@ public class MainActivity extends AppCompatActivity{
         Snackbar snackbar = Snackbar.make(toolbar.getRootView(), "Reply Service Dismissed", Snackbar.LENGTH_SHORT);
         snackbar.show();
         return snackbar;
+    }
+
+    private boolean checkRunning(int leniency){
+        leniency++;
+        int count = 0;
+        for(ReplyItem replyItem: replyItems){
+            if(replyItem.isChecked())
+                count++;
+            if(count >= leniency)
+                return true;
+        }
+        return false;
     }
 
 
@@ -442,7 +468,7 @@ public class MainActivity extends AppCompatActivity{
         LayoutParams lp = new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT);
         welcome.setGravity(Gravity.CENTER_HORIZONTAL);
         welcome.setLayoutParams(lp);
-        ((RelativeLayout)findViewById(R.id.main_activity)).addView(welcome);
+        ((RelativeLayout)findViewById(R.id.activity_main)).addView(welcome);
         welcome.setY((int)(Resources.getSystem().getDisplayMetrics().heightPixels));
         welcome.setY(welcome.getY() + welcome.getLayoutParams().height);
 
@@ -479,7 +505,7 @@ public class MainActivity extends AppCompatActivity{
         return toolbar;
     }
 
-    private void saveReplyItems(){
+    public void saveReplyItems(){
         JSONArray replyItemsJSON = new JSONArray();
         try{
             ArrayList<ReplyItem> replyItems = MainActivity.replyItems;
