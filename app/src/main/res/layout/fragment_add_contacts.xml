@@ -53,20 +53,24 @@
         android:id="@+id/swipe_refresh"
         android:background="@android:color/transparent"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@id/quick_buttons">
+        android:layout_height="match_parent">
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/recycler_view"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="match_parent"
+            app:fastScrollEnabled="true"
+            app:fastScrollHorizontalThumbDrawable="@drawable/thumb_drawable"
+            app:fastScrollHorizontalTrackDrawable="@drawable/line_drawable"
+            app:fastScrollVerticalThumbDrawable="@drawable/thumb_drawable"
+            app:fastScrollVerticalTrackDrawable="@drawable/line_drawable"/>
 
 
 
 
     </android.support.v4.widget.SwipeRefreshLayout>
 
-    <android.support.v7.widget.CardView
+<!--    <android.support.v7.widget.CardView
         android:id="@+id/quick_buttons"
         android:layout_width="match_parent"
         android:layout_height="@dimen/item_size_medium"
@@ -91,7 +95,7 @@
         android:layout_height="12dp"
         android:background="@color/orange"
         android:layout_alignParentBottom="true"
-        android:layout_marginTop="6dp"/>
+        android:layout_marginTop="6dp"/>-->
 
 
     <ProgressBar
