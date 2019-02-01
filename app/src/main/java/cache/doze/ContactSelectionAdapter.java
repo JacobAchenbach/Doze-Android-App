@@ -18,7 +18,6 @@ import android.widget.RelativeLayout;
 import android.widget.SectionIndexer;
 import android.widget.TextView;
 
-import com.futuremind.recyclerviewfastscroll.SectionTitleProvider;
 import com.timehop.stickyheadersrecyclerview.StickyRecyclerHeadersAdapter;
 
 import java.util.ArrayList;
@@ -32,7 +31,7 @@ import cache.doze.Tools.QuickTools;
  * Created by Chris on 2/15/2018.
  */
 
-public class ContactSelectionAdapter extends RecyclerView.Adapter<ContactSelectionAdapter.ViewHolder> implements SectionIndexer, SectionTitleProvider, StickyRecyclerHeadersAdapter {
+public class ContactSelectionAdapter extends RecyclerView.Adapter<ContactSelectionAdapter.ViewHolder> implements SectionIndexer, StickyRecyclerHeadersAdapter {
 
     private List<Contact> allContacts;
     private List<Contact> contacts;
@@ -306,10 +305,10 @@ public class ContactSelectionAdapter extends RecyclerView.Adapter<ContactSelecti
         return mSectionPositions.get(sectionIndex);
     }
 
-    @Override
+/*    @Override
     public String getSectionTitle(int position){
         return contacts.get(position).getAddress().substring(0, 1);
-    }
+    }*/
 
     public void updateChecked(int startPos, int endPos){
         for(int i = startPos; i < endPos; i++){

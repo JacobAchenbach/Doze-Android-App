@@ -32,7 +32,6 @@ import android.widget.CheckBox;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.futuremind.recyclerviewfastscroll.FastScroller;
 import com.timehop.stickyheadersrecyclerview.StickyRecyclerHeadersDecoration;
 
 import org.json.JSONArray;
@@ -64,7 +63,6 @@ public class AddContactsFragment extends DozeFragment implements SearchView.OnQu
     private FunFab fab;
     private RecyclerView recyclerView;
     private StickyRecyclerHeadersDecoration recyclerDecorator;
-    private FastScroller fastScroller;
     private SwipeRefreshLayout swipeRefresh;
     private ProgressBar progressBar;
     private TextView notifText;
@@ -183,7 +181,6 @@ public class AddContactsFragment extends DozeFragment implements SearchView.OnQu
         recyclerView = rootView.findViewById(R.id.recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        fastScroller = rootView.findViewById(R.id.fast_scroller);
 /*        recyclerView.setIndexbarWidth(70f);
         recyclerView.setIndexBarCornerRadius(0);
         recyclerView.setIndexbarMargin(0);
@@ -243,7 +240,6 @@ public class AddContactsFragment extends DozeFragment implements SearchView.OnQu
         recyclerView.setAdapter(adapter);
         if(recyclerDecorator != null) recyclerDecorator.invalidateHeaders();
         if(recyclerDecorator == null) recyclerView.addItemDecoration(recyclerDecorator = new StickyRecyclerHeadersDecoration(adapter));
-        fastScroller.setRecyclerView(recyclerView);
         //mainActivity.setContactList(contactList);
 
 /*        if(mainActivity.getContactList().size() <= 20)
