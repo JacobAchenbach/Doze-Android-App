@@ -25,7 +25,7 @@
 
     <TextView
         android:id="@+id/address"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="72dp"
         android:layout_marginStart="78dp"
@@ -40,7 +40,6 @@
         android:layout_height="50dp"
         android:layout_alignParentEnd="true"
         android:layout_centerVertical="true"
-        android:layout_marginEnd="16dp"
         android:buttonTint="@color/colorAccent"/>
 
     <View

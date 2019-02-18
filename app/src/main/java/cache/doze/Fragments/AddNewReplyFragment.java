@@ -14,7 +14,6 @@ import cache.doze.Activities.MainActivity;
 import cache.doze.Model.ReplyItem;
 import cache.doze.R;
 import cache.doze.SaveEditText;
-import cache.doze.Views.FunFab.FunFab;
 
 /**
  * Created by Chris on 10/4/2018.
@@ -43,13 +42,13 @@ public class AddNewReplyFragment extends Fragment {
 
 
 
-    public static MainRepliesFragment newInstance(int page, String title) {
-        MainRepliesFragment mainRepliesFragment = new MainRepliesFragment();
+    public static RepliesFragment newInstance(int page, String title) {
+        RepliesFragment repliesFragment = new RepliesFragment();
         Bundle args = new Bundle();
         args.putInt("someInt", page);
         args.putString("someTitle", title);
-        mainRepliesFragment.setArguments(args);
-        return mainRepliesFragment;
+        repliesFragment.setArguments(args);
+        return repliesFragment;
     }
 
     public void show(){
@@ -113,7 +112,7 @@ public class AddNewReplyFragment extends Fragment {
 
 //    private void initViewPages(){
 //        List<Fragment> fragments = new Vector<>();
-//        fragments.add(Fragment.instantiate(this.getContext(), MainRepliesFragment.class.getName()));
+//        fragments.add(Fragment.instantiate(this.getContext(), RepliesFragment.class.getName()));
 //        fragments.add(Fragment.instantiate(this.getContext(), AddContactsFragment.class.getName()));
 //        viewPagerAdapter = new ViewPagerAdapter(super.get)
 //    }

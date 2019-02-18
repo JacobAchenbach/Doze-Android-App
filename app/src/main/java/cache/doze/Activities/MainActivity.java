@@ -35,7 +35,7 @@ import java.util.HashMap;
 import cache.doze.Fragments.AddContactsFragment;
 import cache.doze.Fragments.AddNewReplyFragment;
 import cache.doze.Fragments.DozeFragment;
-import cache.doze.Fragments.MainRepliesFragment;
+import cache.doze.Fragments.RepliesFragment;
 import cache.doze.Model.Contact;
 import cache.doze.Model.ReplyItem;
 import cache.doze.MonitorSmsService;
@@ -65,7 +65,7 @@ public class MainActivity extends AppCompatActivity{
     Notification.Builder runningNotification;
 
     public FluidSearchView fluidSearchView;
-    MainRepliesFragment mainRepliesFragment;
+    RepliesFragment repliesFragment;
     AddContactsFragment addContactsFragment;
     FunFab fab;
 
@@ -135,12 +135,12 @@ public class MainActivity extends AppCompatActivity{
         //replyItems.add(new ReplyItem("Work", "Currently out of the office, please leave a message!"));
         fab = findViewById(R.id.fab);
 
-        if(mainRepliesFragment == null){
-            mainRepliesFragment = new MainRepliesFragment();
+        if(repliesFragment == null){
+            repliesFragment = new RepliesFragment();
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.replies_container, mainRepliesFragment, "Main_Replies").commitAllowingStateLoss();
-            mainRepliesFragment.setFab(fab);
-            mainRepliesFragment.isShown = true;
+                    .add(R.id.replies_container, repliesFragment, "Main_Replies").commitAllowingStateLoss();
+            repliesFragment.setFab(fab);
+            repliesFragment.isShown = true;
         }
 
         if(addContactsFragment == null){
@@ -157,14 +157,14 @@ public class MainActivity extends AppCompatActivity{
     }
 
     public void showContactsFrag(ReplyItem replyItem){
-        mainRepliesFragment.slideOutLeft();
+        repliesFragment.slideOutLeft();
         addContactsFragment.slideInRight();
         addContactsFragment.setReplyItem(replyItem);
     }
 
     public void showMainRepliesFrag(){
         addContactsFragment.slideOutRight();
-        mainRepliesFragment.slideInLeft();
+        repliesFragment.slideInLeft();
     }
 
     public FunFab getFab(){
@@ -278,7 +278,7 @@ public class MainActivity extends AppCompatActivity{
         super.onPause();
 //        if(fluidSearchView != null && !FluidSearchView.isDetached)
 //            fluidSearchView.detach();
-        //MainActivity.preset = ((MainRepliesFragment)viewPagerAdapter.getFragment(0)).getPresetText();
+        //MainActivity.preset = ((RepliesFragment)viewPagerAdapter.getFragment(0)).getPresetText();
     }
     @Override
     protected void onStop(){

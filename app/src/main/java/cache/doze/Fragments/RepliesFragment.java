@@ -30,7 +30,7 @@ import me.everything.android.ui.overscroll.OverScrollDecoratorHelper;
  * Created by Chris on 2/22/2018.
  */
 
-public class MainRepliesFragment extends DozeFragment {
+public class RepliesFragment extends DozeFragment {
 
     MainActivity mainActivity;
     public AddNewReplyFragment addNewFrag;
@@ -46,13 +46,13 @@ public class MainRepliesFragment extends DozeFragment {
 
     private int recyclerViewScrollY;
 
-    public static MainRepliesFragment newInstance(int page, String title) {
-        MainRepliesFragment mainRepliesFragment = new MainRepliesFragment();
+    public static RepliesFragment newInstance(int page, String title) {
+        RepliesFragment repliesFragment = new RepliesFragment();
         Bundle args = new Bundle();
         args.putInt("someInt", page);
         args.putString("someTitle", title);
-        mainRepliesFragment.setArguments(args);
-        return mainRepliesFragment;
+        repliesFragment.setArguments(args);
+        return repliesFragment;
     }
 
     @Override

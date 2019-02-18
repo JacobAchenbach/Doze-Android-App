@@ -496,8 +496,8 @@ public class FunFab extends CardView{
                     cancelButton.setVisibility(View.VISIBLE);
                     cancelButton.setAlpha(1f);
 
-                    divider.setVisibility(View.VISIBLE);
-                    divider.setAlpha(1f);
+//                    divider.setVisibility(View.VISIBLE);
+//                    divider.setAlpha(1f);
                 }
 
             }).start();
@@ -506,9 +506,9 @@ public class FunFab extends CardView{
             cancelButton.setVisibility(View.VISIBLE);
             cancelButton.animate().alpha(1f).setDuration(endTime).start();
 
-            divider.setAlpha(0f);
-            divider.setVisibility(View.VISIBLE);
-            divider.animate().alpha(1f).setDuration(endTime).start();
+//            divider.setAlpha(0f);
+//            divider.setVisibility(View.VISIBLE);
+//            divider.animate().alpha(1f).setDuration(endTime).start();
 
             fragment.onResume();
         }else {

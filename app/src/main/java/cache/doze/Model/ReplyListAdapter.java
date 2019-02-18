@@ -7,7 +7,6 @@ package cache.doze.Model;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
-import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
@@ -31,13 +30,16 @@ import android.view.animation.AnimationUtils;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 
+import com.skydoves.powermenu.AbstractPowerMenu;
 import com.skydoves.powermenu.CustomPowerMenu;
 import com.skydoves.powermenu.MenuAnimation;
 import com.skydoves.powermenu.MenuBaseAdapter;
 import com.skydoves.powermenu.OnMenuItemClickListener;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -45,7 +47,7 @@ import java.util.Random;
 
 import cache.doze.Activities.MainActivity;
 import cache.doze.Fragments.AddNewReplyFragment;
-import cache.doze.Fragments.MainRepliesFragment;
+import cache.doze.Fragments.RepliesFragment;
 import cache.doze.R;
 import cache.doze.Tools.ItemMoveCallback;
 import cache.doze.Tools.QuickTools;
@@ -62,7 +64,7 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
     RecyclerView recyclerView;
     private List<ReplyItem> replyItems;
     private MainActivity mainActivity;
-    private MainRepliesFragment mainRepliesFragment;
+    private RepliesFragment repliesFragment;
     private AddNewReplyFragment addNewFrag;
     private ItemTouchHelper touchHelper;
     private IOverScrollDecor overScrollDecor;
@@ -80,26 +82,26 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
     public boolean fingerDown;
     private boolean dragging;
 
-    public ReplyListAdapter(List<ReplyItem> items, MainActivity mainActivity, RecyclerView recyclerView, MainRepliesFragment mainRepliesFragment) {
+    public ReplyListAdapter(List<ReplyItem> items, MainActivity mainActivity, RecyclerView recyclerView, RepliesFragment repliesFragment) {
         this.replyItems = items;
         this.mainActivity = mainActivity;
         this.recyclerView = recyclerView;
-        this.mainRepliesFragment = mainRepliesFragment;
+        this.repliesFragment = repliesFragment;
 
         this.context = recyclerView.getContext();
         canAnimate = true;
     }
 
     public void setUp(){
-        addNewFrag = mainRepliesFragment.addNewFrag;
-        fab = mainRepliesFragment.fab;
-        touchHelper = mainRepliesFragment.touchHelper;
-        overScrollDecor = mainRepliesFragment.overScrollDecor;
+        addNewFrag = repliesFragment.addNewFrag;
+        fab = repliesFragment.fab;
+        touchHelper = repliesFragment.touchHelper;
+        overScrollDecor = repliesFragment.overScrollDecor;
     }
 
     public void fixRecyclerView(){
-        mainRepliesFragment.refreshRecyclerView();
-        mainRepliesFragment.setUpRecyclerViewOverScroll();
+        repliesFragment.refreshRecyclerView();
+        repliesFragment.setUpRecyclerViewOverScroll();
     }
 
     @Override
@@ -269,9 +271,18 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
                 .setAnimation(MenuAnimation.SHOWUP_TOP_RIGHT)
                 .setMenuRadius(10f)
                 .setMenuShadow(10f)
-                .setBackgroundAlpha(0f)
+                .setShowBackground(false)
                 .setWidth((int) context.getResources().getDimension(R.dimen.item_size_xxlarge))
                 .build();
+
+        try{
+            Field menuWindowF = AbstractPowerMenu.class.getDeclaredField("menuWindow");
+            menuWindowF.setAccessible(true);
+            PopupWindow menuWindow = (PopupWindow) menuWindowF.get(powerMenu);
+            menuWindow.setAnimationStyle(R.style.PopupAnimation);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
 
         OnMenuItemClickListener<SpinnerItem> onMenuItemClickListener = new OnMenuItemClickListener<SpinnerItem>() {
             @Override

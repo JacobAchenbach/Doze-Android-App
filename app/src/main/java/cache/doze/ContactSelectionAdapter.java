@@ -84,7 +84,8 @@ public class ContactSelectionAdapter extends RecyclerView.Adapter<ContactSelecti
     }
 
     private int lastColor = genRandomColor();
-    @Override public void onBindViewHolder(@NonNull ViewHolder holder, final int position) {
+    @Override public void onBindViewHolder(@NonNull ViewHolder holder, int pos) {
+        final int position = holder.getAdapterPosition();
         Contact item = contacts.get(position);
         holder.address.setText(item.getAddress());
         holder.checkBox.setChecked(item.getSelected());
@@ -106,22 +107,34 @@ public class ContactSelectionAdapter extends RecyclerView.Adapter<ContactSelecti
                 parent.setCardBackgroundColor(item.getBackgroundColor());
         }
         holder.itemView.setTag(item);
-        holder.itemView.setOnClickListener(new View.OnClickListener() {
+        holder.address.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if(itemClickedListener != null) itemClickedListener.onItemClick(view, position);
             }
         });
 
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                holder.checkBox.setChecked(!holder.checkBox.isChecked());
+                setChecked(view, position);
+            }
+        });
+
         holder.checkBox.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(contactCheckedListener != null) contactCheckedListener.onContactChecked(view, position);
-                updateEmojiForPosition(position);
+                setChecked(view, position);
             }
         });
 
         if(viewHolders.get(position) == null)viewHolders.set(position, holder);
+    }
+
+    private void setChecked(View view, int position){
+        if(contactCheckedListener != null) contactCheckedListener.onContactChecked(view, position);
+        updateEmojiForPosition(position);
     }
 
     private int genRandomColor(){
