@@ -14,14 +14,13 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/padding_large"
             android:layout_marginTop="@dimen/padding_large"
-            android:text="Replies"
+            android:text=""
             android:textSize="28sp"/>
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/recycler_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:paddingTop="@dimen/item_size_medium"
             android:paddingBottom="@dimen/item_size_xlarge"
             android:clipToPadding="false"
             android:background="@color/transparent"

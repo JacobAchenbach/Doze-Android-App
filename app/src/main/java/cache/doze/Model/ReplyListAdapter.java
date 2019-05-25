@@ -257,7 +257,8 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
     }
 
     private void setUpColorScheme(ViewHolder holder, ReplyItem item){
-        String[] gradient = QuickTools.getRandomGradient().split(" ");
+        //String[] gradient = QuickTools.getRandomGradient().split(" ");
+        String[] gradient = new String[]{"D3E7EE", "ABD1DC", ""};
         item.setColorScheme(context, gradient);
         holder.enabledInd.setBackground(item.getGradient());
     }

@@ -89,7 +89,7 @@ public class RepliesFragment extends DozeFragment {
             float paddingTop = getResources().getDimension(R.dimen.padding_xlarge);
 
             @Override
-            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
                 if (recyclerViewAdapter != null) recyclerViewAdapter.canAnimate = false;
 
@@ -161,7 +161,7 @@ public class RepliesFragment extends DozeFragment {
                         changeFragProperties(true);
                     }
                     mainActivity.saveReplyItems();
-                    mainActivity.setToolbarColor(ContextCompat.getColor(getContext(), R.color.colorPrimary));
+                    //mainActivity.setToolbarColor(ContextCompat.getColor(context, R.color.white));
                     getToolbar().setTitle("Doze");
                 }
             });
@@ -170,7 +170,7 @@ public class RepliesFragment extends DozeFragment {
                 @Override
                 public void onCancel() {
                     changeFragProperties(true);
-                    mainActivity.setToolbarColor(ContextCompat.getColor(getContext(), R.color.colorPrimary));
+                    //mainActivity.setToolbarColor(ContextCompat.getColor(context, R.color.white));
                     getToolbar().setTitle("Doze");
                 }
             });
@@ -178,7 +178,7 @@ public class RepliesFragment extends DozeFragment {
             addNewFrag.setContactsButtonPressedListener(new AddNewReplyFragment.OnContactsButtonPressedListener() {
                 @Override
                 public void onPressed() {
-                    fab.setIcon(ContextCompat.getDrawable(getContext(), R.drawable.baseline_more_vert_black_36));
+                    fab.setIcon(ContextCompat.getDrawable(context, R.drawable.baseline_more_vert_black_36));
                     fab.expandFab(false, true);
                     showContactsPage = true;
                     fab.hide();
@@ -189,8 +189,8 @@ public class RepliesFragment extends DozeFragment {
                 @Override
                 public void onItemClick(ReplyItem item, int position) {
                     if(fab.isAnimating())return;
-                    if (addNewFrag.getState() == AddNewReplyFragment.STATE_ADD_NEW)
-                        mainActivity.setToolbarColor(ContextCompat.getColor(getContext(), R.color.colorPrimary), item.getColors()[0]);//item.getColors()[item.getColors().length - 1]);
+/*                    if (addNewFrag.getState() == AddNewReplyFragment.STATE_ADD_NEW)
+                        mainActivity.setToolbarColor(ContextCompat.getColor(context, R.color.colorPrimary), item.getColors()[0]);*/
                     getToolbar().setTitle(item.getTitle());
                     addNewFrag.setReplyItem(item);
                     changeFragProperties(false);
@@ -201,6 +201,7 @@ public class RepliesFragment extends DozeFragment {
             });
 
             recyclerViewAdapter.setUp();
+
 
         }
     }
@@ -213,7 +214,7 @@ public class RepliesFragment extends DozeFragment {
             fab.setCancelText("Cancel");
 //            fab.setFabExpandedBackground(new ColorDrawable(ContextCompat.getColor(fab.getContext(), R.color.colorPrimary)));
 //            fab.setFabClosedBackground(ContextCompat.getColor(fab.getContext(), R.color.colorAccent));
-            fab.setFabClosedBackground(ContextCompat.getColor(fab.getContext(), R.color.reply_blue));
+            fab.setFabClosedBackground(ContextCompat.getColor(fab.getContext(), R.color.colorAccent));
         } else {
             addNewFrag.setState(AddNewReplyFragment.STATE_EDITING);
             fab.setSubmitText("Save");

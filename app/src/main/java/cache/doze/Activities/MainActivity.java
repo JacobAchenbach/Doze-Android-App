@@ -175,41 +175,6 @@ public class MainActivity extends AppCompatActivity{
         return fab == null? findViewById(R.id.fab): fab;
     }
 
-    public void setFabExpanded(){
-
-    }
-
-    private void initViewPager(){
-/*
-                if(searchMag == null){
-                    searchMag = fluidSearchView.getMagIcon();
-                    return;
-                }
-                checkVariables();
-                if(positionOffset < 1 && fluidSearchView.isOpened()){
-                    fluidSearchView.staticOnClose();
-                    return;
-                }
-                if(position == 0){
-                    searchMag.setX(startMagX - (startMagX - endMagX) * positionOffset);
-                    searchMag.setAlpha(positionOffset);
-                    searchMag.setEnabled(false);
-                    searchMag.setClickable(false);
-                }else if(position == 1){
-                    searchMag.setX(endMagX);
-                    searchMag.setAlpha(1f);
-                    searchMag.setEnabled(true);
-                    searchMag.setClickable(true);
-                }
-            }
-            private void checkVariables(){
-                if(fluidSearchView.searchMagStartLeft != -1) endMagX = (int) fluidSearchView.searchMagStartLeft;
-                if(endMagX != -1) {
-                    startMagX = endMagX + QuickTools.convertDpToPx(searchMag.getContext(), 8);
-                    searchMag.setX(startMagX);
-                }
-            }*/
-    }
 
     private void initSearchView(){
         if(fluidSearchView != null) return;
@@ -218,10 +183,6 @@ public class MainActivity extends AppCompatActivity{
         if(FluidSearchView.isDetached) fluidSearchView.build();
         fluidSearchView.hide();
         //fluidSearchView.setOnQueryTextListener(qqqq);
-    }
-
-    public boolean getReplyAll(){
-        return prefs.getBoolean(REPLY_ALL, true);
     }
 
     public boolean isServiceRunning(){
@@ -244,7 +205,7 @@ public class MainActivity extends AppCompatActivity{
         animateToolbarColor(from, to);
     }
     public void setToolbarColor(int to){
-        animateToolbarColor(savedToolbarColor, ContextCompat.getColor(getBaseContext(), R.color.colorPrimary));
+        animateToolbarColor(savedToolbarColor, to);
     }
 
     private void animateToolbarColor(int from, int to){
@@ -306,9 +267,8 @@ public class MainActivity extends AppCompatActivity{
     }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.toolbar, menu);
-        menu.findItem(R.id.action_settings).getIcon().setTint(ContextCompat.getColor(getBaseContext(), R.color.white));
+        menu.findItem(R.id.action_settings).getIcon().setTint(ContextCompat.getColor(getBaseContext(), R.color.black));
         return true;
     }
     @Override

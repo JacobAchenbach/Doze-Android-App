@@ -27,6 +27,7 @@ import android.support.v7.widget.CardView;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.GestureDetector;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -52,14 +53,15 @@ import cache.doze.Tools.QuickTools;
  */
 
 public class FunFab extends CardView {
-    View rootView;
-    CardView fabView;
-    RelativeLayout.LayoutParams fabLP;
-    ImageView icon;
-    RelativeLayout containerHeader;
-    LinearLayout submitButton;
-    LinearLayout cancelButton;
-    View divider;
+    private View rootView;
+    private View background;
+    private CardView fabView;
+    private RelativeLayout.LayoutParams fabLP;
+    private ImageView icon;
+    private RelativeLayout containerHeader;
+    private LinearLayout submitButton;
+    private LinearLayout cancelButton;
+    private View divider;
 
     private Context context;
     private Fragment fragment;
@@ -120,15 +122,13 @@ public class FunFab extends CardView {
     }
 
     private void sharedConstructor() {
-        rootView = inflate(context, R.layout.view_fun_fab, null);
+        rootView = LayoutInflater.from(context).inflate(R.layout.view_fun_fab, this, false);
         addView(rootView);
-
-        getBackground().setAlpha(0);
-        rootView.getBackground().setAlpha(0);
 
         funFabRadius = QuickTools.convertDpToPx(context, 28);
         funFabClosedWH = QuickTools.convertDpToPx(context, 56);
 
+        background = rootView.findViewById(R.id.background);
         fabView = rootView.findViewById(R.id.fab);
         icon = rootView.findViewById(R.id.icon);
         containerHeader = rootView.findViewById(R.id.fab_header);
@@ -138,11 +138,8 @@ public class FunFab extends CardView {
         expandedView = rootView.findViewById(R.id.container);
 
         fabLP = (RelativeLayout.LayoutParams) fabView.getLayoutParams();
+        setBackground(new ColorDrawable(ContextCompat.getColor(context, R.color.transparent)));
 
-//        GradientDrawable bgDrawable = new GradientDrawable();
-//        bgDrawable.setColor(ContextCompat.getColor(context, R.color.colorAccent));
-//        bgDrawable.setCornerRadius(funFabRadius);
-//        fabView.setBackground(bgDrawable);
     }
 
     public Fragment init(Fragment fragment, FragmentManager supportFragmentManager) {
@@ -194,7 +191,7 @@ public class FunFab extends CardView {
     }
 
     private void setupCloseBorder() {
-        rootView.setOnTouchListener(new OnTouchListener() {
+        background.setOnTouchListener(new OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 if (animating || !open) return false;
@@ -211,8 +208,8 @@ public class FunFab extends CardView {
                 return false;
             }
         });
-        rootView.setClickable(false);
-        rootView.setFocusable(false);
+        background.setClickable(false);
+        background.setFocusable(false);
     }
 
     private void setupOnClick() {
@@ -263,6 +260,7 @@ public class FunFab extends CardView {
         final int startTime = !fast ? START_ANIM_TIME : START_ANIM_TIME * 2 / 3;
         final int endTime = !fast ? END_ANIM_TIME : END_ANIM_TIME * 2 / 3;
 
+        if(fabLP == null) fabLP = (RelativeLayout.LayoutParams) fabView.getLayoutParams();
         if (knownBottom == -1) knownBottom = rootView.getBottom();
         if (marginEnd == -1) marginEnd = fabLP.getMarginEnd();
         if (marginBottom == -1) marginBottom = fabLP.bottomMargin;
@@ -513,8 +511,6 @@ public class FunFab extends CardView {
     private void setViewVisibility(boolean show, int startTime, int endTime) {
         if (expandedView == null || fragment == null) return;
 
-        rootView.setClickable(show);
-        rootView.setFocusable(show);
         setFadedBackground(startTime, show);
 
         if (show) {
@@ -560,8 +556,6 @@ public class FunFab extends CardView {
 
             fragment.onResume();
         } else {
-            rootView.setClickable(false);
-            rootView.setFocusable(false);
             expandedView.setAlpha(1f);
             expandedView.animate().alpha(0f).setDuration(startTime).start();
 
@@ -606,13 +600,10 @@ public class FunFab extends CardView {
 
     private void setFadedBackground(int animTime, boolean enabled) {
         backgroundShowing = enabled;
-        rootView.setClickable(enabled);
-        rootView.setFocusable(enabled);
-        if (rootView.getBackground().getAlpha() != 0f || enabled) {
-            ObjectAnimator backgroundAnim = ObjectAnimator.ofPropertyValuesHolder(rootView.getBackground(),
-                    PropertyValuesHolder.ofInt("alpha", rootView.getBackground().getAlpha(), enabled ? (int) (255 * 0.25f) : 0));
-            backgroundAnim.setDuration(animTime);
-            backgroundAnim.start();
+        background.setClickable(enabled);
+        background.setFocusable(enabled);
+        if (background.getAlpha() != 0f || enabled) {
+            background.animate().alpha(enabled? 0.2f: 0f).setDuration(animTime).start();
         }
     }
 

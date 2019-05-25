@@ -5,20 +5,19 @@
     android:layout_width="match_parent" android:layout_height="match_parent"
     android:isScrollContainer="false">
 
-    <FrameLayout
-        android:id="@+id/statusBar"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/status_bar_height"
-        android:background="@color/colorPrimary"
-        android:translationZ="4dp" />
+
+
 
     <android.support.v7.widget.Toolbar
         android:id="@+id/toolbar"
-        android:background="@color/colorPrimary"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:elevation="4dp"
-        app:titleTextColor="@color/white">
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="0dp"
+        android:background="@color/white"
+        android:elevation="0dp"
+        app:titleTextColor="@color/black"
+        app:titleTextAppearance="@style/TextAppearance.AppCompat.Large">
 
     </android.support.v7.widget.Toolbar>
 
@@ -61,14 +60,13 @@
 
         </RelativeLayout>
 
+
     </RelativeLayout>
 
     <cache.doze.Views.FunFab.FunFab
         android:id="@+id/fab"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:isScrollContainer="false">
-
-    </cache.doze.Views.FunFab.FunFab>
+        android:layout_below="@id/toolbar"/>
 
 </RelativeLayout>
