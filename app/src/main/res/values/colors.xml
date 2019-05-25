@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#29b6f6</color>
-    <color name="colorPrimaryDark">#0086c3</color>
-    <color name="colorAccent">#73e8ff</color>
+    <color name="colorPrimary">#344955</color>
+    <!--<color name="colorPrimary">#29b6f6</color>-->
+    <color name="colorPrimaryDark">#232F34</color>
+    <!--<color name="colorPrimaryDark">#0086c3</color>-->
+    <color name="colorAccent">#F9AA33</color>
+    <!--<color name="colorAccent">#73e8ff</color>-->
     <color name="colorAccenaat">#73e8ff</color>
     <color name="colorAccentTest">#ff9800</color>
     <color name="orange">#fe8c00</color>
@@ -22,6 +25,27 @@
     <color name="cream">#c2c2c2</color>
     <color name="light_cream">#dadada</color>
 
+    <color name="reply_blue">#344955</color>
+    <color name="material_800">#232F34</color>
+    <color name="reply_orange">#F9AA33</color>
+
+    <color name="dim_foreground_dark">#bebebe</color>
+    <color name="dim_foreground_dark_disabled">#80bebebe</color>
+    <color name="dim_foreground_dark_inverse">#323232</color>
+    <color name="dim_foreground_dark_inverse_disabled">#80323232</color>
+    <color name="hint_foreground_dark">#808080</color>
+    <color name="holo_dim_foreground_light">#323232</color>
+    <color name="dim_foreground_light_disabled">#80323232</color>
+    <color name="dim_foreground_light_inverse">#bebebe</color>
+    <color name="dim_foreground_light_inverse_disabled">#80bebebe</color>
+    <color name="hint_foreground_light">#808080</color>
+    <color name="highlighted_text_dark">#9983CC39</color>
+    <color name="highlighted_text_light">#9983CC39</color>
+    <color name="link_text_dark">#5c5cff</color>
+    <color name="link_text_light">#0000ee</color>
+    <color name="suggestion_highlight_text">#177bbd</color>
+
     <color name="transparent">#00ffffff</color>
-    <color name="background_material_light">#ffffff</color>
+
+    <color name="text_color_primary">#dadada</color>
 </resources>

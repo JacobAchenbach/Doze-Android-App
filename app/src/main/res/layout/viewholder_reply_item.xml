@@ -9,7 +9,7 @@
     android:layout_marginStart="@dimen/padding_large"
     android:layout_marginEnd="@dimen/padding_large"
     app:cardBackgroundColor="@color/transparent"
-    app:cardCornerRadius="10dp"
+    app:cardCornerRadius="@dimen/default_rounded_corner"
     app:cardElevation="2dp"
     android:clickable="true"
     android:focusable="true">
@@ -42,7 +42,7 @@
             android:layout_height="24dp"
             android:layout_alignParentEnd="true"
             android:layout_marginEnd="@dimen/padding_large"
-            android:layout_marginTop="@dimen/padding_medium"
+            android:layout_marginTop="@dimen/padding_large"
             android:background="@drawable/baseline_more_horiz_black_24"
             android:backgroundTint="@color/black"/>
 
@@ -62,7 +62,7 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="@dimen/item_size_medium"
             android:layout_marginStart="@dimen/padding_xlarge"
-            android:layout_marginTop="@dimen/padding_medium"
+            android:layout_marginTop="@dimen/padding_large"
             android:singleLine="true"
             android:ellipsize="end"
             android:textSize="20sp"
@@ -81,7 +81,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="3"
-                android:layout_marginTop="@dimen/padding_small"
+                android:layout_marginTop="@dimen/padding_medium"
                 android:maxLines="3"
                 android:ellipsize="end"
                 android:textSize="14sp"
@@ -90,6 +90,7 @@
                 android:id="@+id/reply_contacts_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:text="Dave, Robert, Bobert and 12 others..."
                 android:textColor="@color/cream"/>
         </LinearLayout>

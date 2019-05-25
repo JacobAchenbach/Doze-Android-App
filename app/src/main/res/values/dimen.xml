@@ -8,6 +8,7 @@
 
     <dimen name="item_size_xsmall">32dp</dimen>
     <dimen name="item_size_small">48dp</dimen>
+    <dimen name="item_size_shmedium">56dp</dimen>
     <dimen name="item_size_medium">64dp</dimen>
     <dimen name="item_size_large">94dp</dimen>
     <dimen name="item_size_xlarge">132dp</dimen>
@@ -23,5 +24,5 @@
     <dimen name="status_bar_height">25dp</dimen>
     <dimen name="action_bar_height">180dp</dimen>
 
-    <dimen name="default_rounded_corner">10dp</dimen>
+    <dimen name="default_rounded_corner">4dp</dimen>
 </resources>

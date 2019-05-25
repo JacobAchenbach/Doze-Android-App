@@ -10,6 +10,9 @@
         <item name="windowNoTitle">true</item>
         <item name="android:colorBackground">@color/white</item>
         <item name="android:statusBarColor">@color/colorPrimary</item>
+
+        <item name="android:fontFamily">@font/lato_regular</item>
+        <item name="fontFamily">@font/lato_regular</item>
         <!--<item name="android:windowSoftInputMode">adjustNothing</item>-->
 
     </style>

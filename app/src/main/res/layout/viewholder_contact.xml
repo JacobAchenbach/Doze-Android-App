@@ -42,10 +42,4 @@
         android:layout_centerVertical="true"
         android:buttonTint="@color/colorAccent"/>
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="2px"
-        android:layout_alignParentBottom="true"
-        android:background="@color/light_gray"/>
-
 </RelativeLayout>

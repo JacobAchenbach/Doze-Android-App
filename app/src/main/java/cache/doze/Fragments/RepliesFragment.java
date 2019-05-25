@@ -32,7 +32,8 @@ import me.everything.android.ui.overscroll.OverScrollDecoratorHelper;
 
 public class RepliesFragment extends DozeFragment {
 
-    MainActivity mainActivity;
+    private Context context;
+    private MainActivity mainActivity;
     public AddNewReplyFragment addNewFrag;
 
     View root;
@@ -62,8 +63,9 @@ public class RepliesFragment extends DozeFragment {
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, final ViewGroup container, Bundle savedInstanceState) {
-        root = inflater.inflate(R.layout.fragment_main_replies, container, false);
+        this.context = getContext();
 
+        root = inflater.inflate(R.layout.fragment_main_replies, container, false);
         mainActivity = (MainActivity) getActivity();
         title = root.findViewById(R.id.title);
         replyRecycler = root.findViewById(R.id.recycler_view);
@@ -137,7 +139,7 @@ public class RepliesFragment extends DozeFragment {
             float w = screen.x;
             float h = screen.y;
 
-            addNewFrag = (AddNewReplyFragment) fab.init(getActivity().getSupportFragmentManager(), (int) h, 0.85f, (int) w, 1);
+            addNewFrag = (AddNewReplyFragment) fab.init(getActivity().getSupportFragmentManager(), 0.85f, 1);
             changeFragProperties(true);
             fab.setFabExpandListener(new FunFab.FabExpandListener() {
                 @Override
@@ -186,14 +188,15 @@ public class RepliesFragment extends DozeFragment {
             recyclerViewAdapter.setOnItemClickedListener(new ReplyListAdapter.onItemClickedListener() {
                 @Override
                 public void onItemClick(ReplyItem item, int position) {
+                    if(fab.isAnimating())return;
                     if (addNewFrag.getState() == AddNewReplyFragment.STATE_ADD_NEW)
-                        mainActivity.setToolbarColor(ContextCompat.getColor(getContext(), R.color.colorPrimary), item.getColors()[item.getColors().length - 1]);
+                        mainActivity.setToolbarColor(ContextCompat.getColor(getContext(), R.color.colorPrimary), item.getColors()[0]);//item.getColors()[item.getColors().length - 1]);
                     getToolbar().setTitle(item.getTitle());
                     addNewFrag.setReplyItem(item);
                     changeFragProperties(false);
-                    fab.setFabExpandedBackground(item.isChecked() ? item.getGradientTurned(GradientDrawable.Orientation.BOTTOM_TOP) : item.getGradientLighter());
+                    //fab.setFabExpandedBackground(item.isChecked() ? item.getGradientTurned(GradientDrawable.Orientation.BOTTOM_TOP) : item.getGradientLighter());
                     fab.expandFab(true, true);
-                    fab.setFabClosedBackground(item.getColors()[item.getColors().length - 1]);
+                    //fab.setFabClosedBackground(item.getColors()[item.getColors().length - 1]);
                 }
             });
 
@@ -208,8 +211,9 @@ public class RepliesFragment extends DozeFragment {
             fab.setSubmitText("Add");
             fab.setSubmitImage(R.drawable.baseline_add_black_18);
             fab.setCancelText("Cancel");
-            fab.setFabExpandedBackground(new ColorDrawable(ContextCompat.getColor(fab.getContext(), R.color.colorPrimary)));
-            fab.setFabClosedBackground(ContextCompat.getColor(fab.getContext(), R.color.colorAccent));
+//            fab.setFabExpandedBackground(new ColorDrawable(ContextCompat.getColor(fab.getContext(), R.color.colorPrimary)));
+//            fab.setFabClosedBackground(ContextCompat.getColor(fab.getContext(), R.color.colorAccent));
+            fab.setFabClosedBackground(ContextCompat.getColor(fab.getContext(), R.color.reply_blue));
         } else {
             addNewFrag.setState(AddNewReplyFragment.STATE_EDITING);
             fab.setSubmitText("Save");
@@ -252,9 +256,12 @@ public class RepliesFragment extends DozeFragment {
     @Override
     public void onResume() {
         super.onResume();
-        fab.show();
-        if (isShown && fab != null && getContext() != null)
-            fab.setIcon(ContextCompat.getDrawable(getContext(), R.drawable.baseline_create_black_36));
+
+        if (fab != null) {
+            fab.show();
+            if (isShown && getContext() != null)
+                fab.setIcon(ContextCompat.getDrawable(getContext(), R.drawable.baseline_create_black_36));
+        }
     }
 
 

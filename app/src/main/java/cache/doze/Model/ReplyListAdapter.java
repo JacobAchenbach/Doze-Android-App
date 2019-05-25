@@ -10,7 +10,6 @@ import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.GradientDrawable;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
@@ -19,6 +18,7 @@ import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -106,7 +106,7 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
 
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.view_replyitem, parent, false);
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.viewholder_reply_item, parent, false);
         return new ViewHolder(v);
     }
 
@@ -160,7 +160,7 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
         if(canAnimate) animateIn(holder, position, time);
         else holder.itemView.setAlpha(1f);
     }
-    int lastPosition = -1;
+    private int lastPosition = -1;
     private void animateIn(ViewHolder holder, int position, int time)
     {
         // If the bound view wasn't previously displayed on screen, it's animated
@@ -189,7 +189,7 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
 
     private String getSomeContacts(ReplyItem item){
         ArrayList<Contact> contacts = item.getContacts();
-        if(contacts == null || contacts.isEmpty())return "No Contacts Selected ";
+        if(contacts == null || contacts.isEmpty()) return "No Contacts Selected ";
 
         StringBuilder stringBuilder = new StringBuilder();
         char lastChar = contacts.get(0).getShortenedAddress().charAt(0);
@@ -292,7 +292,7 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
                         setDragging(true);
                         break;
                     case 1:
-                        removeItem(holder, holder.getAdapterPosition());
+                        removeItem(holder, index);
                         break;
                 }
                 powerMenu.dismiss();
@@ -351,7 +351,9 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
         animateElevation(holder, elevation).start();
     }
 
-    public void removeItem(ViewHolder holder, int position){
+    public void removeItem(ViewHolder holder, int index){
+        int position = holder.getAdapterPosition() != -1? holder.getAdapterPosition(): index;
+
         holder.itemView.setAlpha(1f);
         holder.itemView.animate().alpha(0f).setDuration(250).setListener(new AnimatorListenerAdapter() {
             @Override
@@ -373,7 +375,27 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
 
     }
 
+    class SingleTapDetector extends GestureDetector.SimpleOnGestureListener{
+        @Override
+        public boolean onSingleTapConfirmed(MotionEvent e) {
+            int pos = focusedHolder.getAdapterPosition();
+            itemClickedListener.onItemClick(MainActivity.replyItems.get(pos), pos);
+            return true;
+        }
+    }
+
+    class DoubleTapDetector extends GestureDetector.SimpleOnGestureListener{
+        @Override
+        public boolean onDoubleTap(MotionEvent e) {
+            onLongClick(focusedHolder.getAdapterPosition(), focusedHolder);
+            return true;
+        }
+    }
+
+    ViewHolder focusedHolder;
     private void setUpTouchListener(int position, ViewHolder holder){
+        final GestureDetector tapDetector = new GestureDetector(context, new SingleTapDetector());
+        final GestureDetector doubleTapDetector = new GestureDetector(context, new DoubleTapDetector());
         ReplyItem item = MainActivity.replyItems.get(position);
         final Runnable longPressRunnable = new Runnable() {
             @Override
@@ -393,6 +415,17 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
 
             @Override
             public boolean onTouch(View view, MotionEvent ev) {
+/*                 focusedHolder = holder;
+                tapDetector.onTouchEvent(ev);
+                doubleTapDetector.onTouchEvent(ev);
+               if(tapDetector.onTouchEvent(ev))
+                    itemClickedListener.onItemClick(item, holder.getAdapterPosition());
+                if(doubleTapDetector.onTouchEvent(ev)){
+                    onLongClick(position, holder);
+                    longClicked = true;
+                }*/
+
+
                 switch (ev.getActionMasked()){
                     case MotionEvent.ACTION_DOWN:
                         pointerX = (int) ev.getX();
@@ -452,8 +485,8 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
             fab.moveForSnackBar(snackbar);
 
 
-        if(addNewFrag.getState() == AddNewReplyFragment.STATE_EDITING)
-            fab.setFabExpandedBackground(!checked? item.getGradientTurned(GradientDrawable.Orientation.BOTTOM_TOP): item.getGradientLighter());
+        /*if(addNewFrag.getState() == AddNewReplyFragment.STATE_EDITING)
+            fab.setFabExpandedBackground(!checked? item.getGradientTurned(GradientDrawable.Orientation.BOTTOM_TOP): item.getGradientLighter());*/
 
 
         longClicked = true;
@@ -463,7 +496,7 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
         int tint, tintLight;
         int goalElevation;
         if(enabled){
-            goalElevation = QuickTools.convertDpToPx(context, 6);
+            goalElevation = QuickTools.convertDpToPx(context, 4);
             if(animate){
                 holder.enabledInd.setAlpha(1f);
                 ValueAnimator elevationAnim = animateElevation(holder, goalElevation);
@@ -499,7 +532,7 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
             tint = ContextCompat.getColor(holder.title.getContext(), R.color.white);
             tintLight = ContextCompat.getColor(holder.title.getContext(), R.color.light_cream);
         }else{
-            goalElevation = QuickTools.convertDpToPx(context, 2);
+            goalElevation = QuickTools.convertDpToPx(context, 1);
             if(animate){
                 holder.enabledInd.clearAnimation();
                 holder.enabledInd.setAnimation(null);

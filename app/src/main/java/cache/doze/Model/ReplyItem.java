@@ -56,7 +56,7 @@ public class ReplyItem implements Serializable{
 
         borderDrawable.setColor(ContextCompat.getColor(context, R.color.white));
         borderDrawable.setOrientation(GradientDrawable.Orientation.LEFT_RIGHT);
-        borderDrawable.setStroke(QuickTools.convertDpToPx(context, 2), drawableColors[drawableColors.length - 1]);
+        borderDrawable.setStroke(QuickTools.convertDpToPx(context, 2), drawableColors[0]);//drawableColors[drawableColors.length - 1]);
         borderDrawable.setShape(GradientDrawable.RECTANGLE);
         borderDrawable.setCornerRadius(context.getResources().getDimension(R.dimen.default_rounded_corner));
     }

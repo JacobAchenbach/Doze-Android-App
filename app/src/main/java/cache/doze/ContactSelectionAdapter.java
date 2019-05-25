@@ -79,7 +79,7 @@ public class ContactSelectionAdapter extends RecyclerView.Adapter<ContactSelecti
     }
 
     @Override public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.view_listed_contact, parent, false);
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.viewholder_contact, parent, false);
         return new ViewHolder(v);
     }
 
@@ -231,7 +231,7 @@ public class ContactSelectionAdapter extends RecyclerView.Adapter<ContactSelecti
     @Override
     public HeaderViewHolder onCreateHeaderViewHolder(ViewGroup parent) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.view_recycler_header, parent, false);
+                .inflate(R.layout.viewholder_header, parent, false);
         return new HeaderViewHolder(view) {
         };
     }

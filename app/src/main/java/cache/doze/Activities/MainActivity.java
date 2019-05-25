@@ -19,7 +19,9 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Toast;
 
@@ -126,10 +128,11 @@ public class MainActivity extends AppCompatActivity{
 
 
         setSupportActionBar(toolbar = (Toolbar)findViewById(R.id.toolbar));
-        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+        /*getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         getWindow().setStatusBarColor(ContextCompat.getColor(this, R.color.colorPrimary));
         int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
         getWindow().getDecorView().setSystemUiVisibility(uiOptions);
+        */
 
         replyItems = new ArrayList<>();
         //replyItems.add(new ReplyItem("Work", "Currently out of the office, please leave a message!"));
@@ -153,6 +156,7 @@ public class MainActivity extends AppCompatActivity{
 
         initSearchView();
         //initKeyboardListener();
+
 
     }
 

@@ -18,7 +18,7 @@ import java.util.Random;
  */
 
 public class QuickTools {
-    private static String[] niceGradients = new String[]{"0072ff 00c6ff |BlueOne", "18334F FD746C |DBlueToRed", "4D034B aa076b |DPurpleToMagenta",
+    private static String[] niceGradients = new String[]{"0072ff 00c6ff |BlueOne", "f9aa33 ffdc65 |ReplyOrange", "18334F FD746C |DBlueToRed", "4D034B aa076b |DPurpleToMagenta",
             "f83600 fe8c00 |DOrangeToOrange", "000428 004e92 |DBlueToLBlue", "A81B24 7b4397 |RedToLPurple", "185a9d 43cea2 |BlueToSeaGreen",
             "19547b ffd89b |BlueToYellow", "3a1c71 d76d77 ffaf7b |DPurpleToPinkToPeach", "9708cc 43cbff |PurpleToLBlue"};
 
@@ -32,7 +32,9 @@ public class QuickTools {
 
     public static String getRandomGradient(){
         int randomNum = new Random().nextInt(niceGradients.length);
-        return niceGradients[3];
+        //return niceGradients[4];
+        //return niceGradients[0];
+        return niceGradients[1];
     }
 
     public static <T extends Serializable> T stringToObjectS(String string) {

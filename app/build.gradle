@@ -1,12 +1,12 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 27
-    buildToolsVersion "28.0.2"
+    compileSdkVersion 28
+    buildToolsVersion "28.0.3"
     defaultConfig {
         applicationId "chache.doze"
         minSdkVersion 23
-        targetSdkVersion 27
+        targetSdkVersion 28
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -25,14 +25,14 @@ android {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'com.android.support:appcompat-v7:27.1.1'
-    implementation "com.github.skydoves:powermenu:2.0.5"
+    implementation 'com.android.support:appcompat-v7:28.0.0'
+    implementation 'com.github.skydoves:powermenu:2.0.5'
     testImplementation 'junit:junit:4.12'
-    compile 'com.android.support:recyclerview-v7:27.1.1'
-    compile 'com.android.support:design:27.1.1'
-    compile 'com.android.support:cardview-v7:27.1.1'
-    compile 'me.everything:overscroll-decor-android:1.0.4'
-    compile 'com.timehop.stickyheadersrecyclerview:library:0.4.3@aar'
-    compile 'com.google.code.gson:gson:2.7'
-    compile "com.android.support:support-dynamic-animation:27.1.1"
+    implementation 'com.android.support:recyclerview-v7:28.0.0'
+    implementation 'com.android.support:design:28.0.0'
+    implementation 'com.android.support:cardview-v7:28.0.0'
+    implementation 'me.everything:overscroll-decor-android:1.0.4'
+    implementation 'com.timehop.stickyheadersrecyclerview:library:0.4.3@aar'
+    implementation 'com.google.code.gson:gson:2.7'
+    implementation 'com.android.support:support-dynamic-animation:28.0.0'
 }
