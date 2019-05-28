@@ -21,6 +21,7 @@ import java.util.Queue;
 
 import cache.doze.Activities.MainActivity;
 import cache.doze.R;
+import cache.doze.Views.DozeToolbar;
 
 /**
  * Created by Chris on 11/8/2018.
@@ -38,7 +39,7 @@ public class DozeFragment extends Fragment {
 
     public final static int ANIMATION_TIME = 250;
 
-    public Toolbar getToolbar(){
+    public DozeToolbar getToolbar(){
         return ((MainActivity)getActivity()).getToolbar();
     }
 

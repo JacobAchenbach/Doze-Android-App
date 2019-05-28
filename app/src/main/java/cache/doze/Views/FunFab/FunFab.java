@@ -401,6 +401,8 @@ public class FunFab extends CardView {
         heightAnimation.setStartDelay(startTime);
         heightAnimation.start();
 
+        ObjectAnimator.ofFloat(fabView, "cardElevation", fabView.getCardElevation(), QuickTools.convertDpToPx(context, 16)).setDuration(startTime).start();
+
         ObjectAnimator.ofFloat(fabView, "radius", funFabRadius, getResources().getDimension(R.dimen.default_rounded_corner)).setDuration(startTime).start();
 
         //fabView.setY(openY - marginBottom);
@@ -476,6 +478,8 @@ public class FunFab extends CardView {
         });
         widthAnimation.start();
 
+        ObjectAnimator.ofFloat(fabView, "cardElevation", fabView.getCardElevation(), QuickTools.convertDpToPx(context, 2)).setDuration(startTime).start();
+
         ObjectAnimator.ofFloat(fabView, "radius", fabView.getRadius(), funFabRadius).setDuration(endTime).start();
 
 
@@ -513,7 +517,11 @@ public class FunFab extends CardView {
 
         setFadedBackground(startTime, show);
 
+        ValueAnimator fabColorAnim;
         if (show) {
+            fabColorAnim = ValueAnimator.ofArgb(fabView.getCardBackgroundColor().getDefaultColor(), ContextCompat.getColor(context, R.color.white));
+
+
             expandedView.setAlpha(0f);
             expandedView.setVisibility(View.VISIBLE);
             expandedView.animate().alpha(1f).setStartDelay(endTime).setDuration(startTime).start();
@@ -556,6 +564,9 @@ public class FunFab extends CardView {
 
             fragment.onResume();
         } else {
+            fabColorAnim = ValueAnimator.ofArgb(fabView.getCardBackgroundColor().getDefaultColor(), ContextCompat.getColor(context, R.color.colorAccent));
+
+
             expandedView.setAlpha(1f);
             expandedView.animate().alpha(0f).setDuration(startTime).start();
 
@@ -594,6 +605,15 @@ public class FunFab extends CardView {
 
             fragment.onPause();
         }
+
+        fabColorAnim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator valueAnimator) {
+                int color = (Integer) valueAnimator.getAnimatedValue();
+                fabView.setCardBackgroundColor(color);
+            }
+        });
+        fabColorAnim.setDuration(startTime).start();
     }
 
     boolean backgroundShowing = false;

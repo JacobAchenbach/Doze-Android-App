@@ -30,6 +30,10 @@ public class QuickTools {
         return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, context.getResources().getDisplayMetrics());
     }
 
+    public static int convertSpToPx(Context context, float sp) {
+        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, sp, context.getResources().getDisplayMetrics());
+    }
+
     public static String getRandomGradient(){
         int randomNum = new Random().nextInt(niceGradients.length);
         //return niceGradients[4];

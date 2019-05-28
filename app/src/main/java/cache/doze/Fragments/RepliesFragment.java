@@ -2,8 +2,6 @@ package cache.doze.Fragments;
 
 import android.content.Context;
 import android.graphics.Point;
-import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
@@ -38,7 +36,7 @@ public class RepliesFragment extends DozeFragment {
 
     View root;
     TextView title;
-    RecyclerView replyRecycler;
+    RecyclerView replyRecyclerView;
     ReplyListAdapter recyclerViewAdapter;
     public FunFab fab;
 
@@ -68,7 +66,7 @@ public class RepliesFragment extends DozeFragment {
         root = inflater.inflate(R.layout.fragment_main_replies, container, false);
         mainActivity = (MainActivity) getActivity();
         title = root.findViewById(R.id.title);
-        replyRecycler = root.findViewById(R.id.recycler_view);
+        replyRecyclerView = root.findViewById(R.id.recycler_view);
 
         setUpRecyclerView();
         if (addNewFrag == null) setUpFab();
@@ -77,15 +75,17 @@ public class RepliesFragment extends DozeFragment {
     }
 
     private void setUpRecyclerView() {
-        replyRecycler.setLayoutManager(new LinearLayoutManager(getContext()));
-        replyRecycler.setAdapter(recyclerViewAdapter = new ReplyListAdapter(MainActivity.replyItems, mainActivity, replyRecycler, this));
+        getToolbar().setScroller(replyRecyclerView);
+
+        replyRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        replyRecyclerView.setAdapter(recyclerViewAdapter = new ReplyListAdapter(MainActivity.replyItems, mainActivity, replyRecyclerView, this));
 
         ItemTouchHelper.Callback callback = new ItemMoveCallback(recyclerViewAdapter);
         touchHelper = new ItemTouchHelper(callback);
 
         setUpRecyclerViewOverScroll();
 
-        replyRecycler.addOnScrollListener(new RecyclerView.OnScrollListener() {
+        replyRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             float paddingTop = getResources().getDimension(R.dimen.padding_xlarge);
 
             @Override
@@ -107,16 +107,16 @@ public class RepliesFragment extends DozeFragment {
         });
 
 
-        touchHelper.attachToRecyclerView(replyRecycler);
+        touchHelper.attachToRecyclerView(replyRecyclerView);
     }
 
     public void setUpRecyclerViewOverScroll(){
-        overScrollDecor = OverScrollDecoratorHelper.setUpOverScroll(replyRecycler, OverScrollDecoratorHelper.ORIENTATION_VERTICAL);
+        overScrollDecor = OverScrollDecoratorHelper.setUpOverScroll(replyRecyclerView, OverScrollDecoratorHelper.ORIENTATION_VERTICAL);
     }
 
     public void refreshRecyclerView(){
         float paddingTop = getResources().getDimension(R.dimen.padding_xlarge);
-        recyclerViewScrollY = replyRecycler.computeVerticalScrollOffset();
+        recyclerViewScrollY = replyRecyclerView.computeVerticalScrollOffset();
         if (recyclerViewScrollY <= paddingTop) {
             float perc = recyclerViewScrollY / paddingTop;
             title.setAlpha(1 - perc);
@@ -162,7 +162,7 @@ public class RepliesFragment extends DozeFragment {
                     }
                     mainActivity.saveReplyItems();
                     //mainActivity.setToolbarColor(ContextCompat.getColor(context, R.color.white));
-                    getToolbar().setTitle("Doze");
+                    //getToolbar().setTitle("Doze");
                 }
             });
 
@@ -171,7 +171,7 @@ public class RepliesFragment extends DozeFragment {
                 public void onCancel() {
                     changeFragProperties(true);
                     //mainActivity.setToolbarColor(ContextCompat.getColor(context, R.color.white));
-                    getToolbar().setTitle("Doze");
+                    //getToolbar().setTitle("Doze");
                 }
             });
 
@@ -191,7 +191,7 @@ public class RepliesFragment extends DozeFragment {
                     if(fab.isAnimating())return;
 /*                    if (addNewFrag.getState() == AddNewReplyFragment.STATE_ADD_NEW)
                         mainActivity.setToolbarColor(ContextCompat.getColor(context, R.color.colorPrimary), item.getColors()[0]);*/
-                    getToolbar().setTitle(item.getTitle());
+                    //getToolbar().setTitle(item.getTitle());
                     addNewFrag.setReplyItem(item);
                     changeFragProperties(false);
                     //fab.setFabExpandedBackground(item.isChecked() ? item.getGradientTurned(GradientDrawable.Orientation.BOTTOM_TOP) : item.getGradientLighter());

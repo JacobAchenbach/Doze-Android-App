@@ -43,6 +43,7 @@ import cache.doze.Model.ReplyItem;
 import cache.doze.MonitorSmsService;
 import cache.doze.R;
 import cache.doze.Tools.PermissionsHelper;
+import cache.doze.Views.DozeToolbar;
 import cache.doze.Views.FluidSearchView;
 import cache.doze.Views.FunFab.FunFab;
 
@@ -86,7 +87,7 @@ public class MainActivity extends AppCompatActivity{
     public static ArrayList<Contact> contactList = new ArrayList<>();
     public static HashMap<String, Integer> messagedContacts = new HashMap<>();
 
-    Toolbar toolbar;
+    DozeToolbar toolbar;
 
 
     @Override
@@ -94,6 +95,67 @@ public class MainActivity extends AppCompatActivity{
         super.onCreate(savedInstanceState);
         if(!permissionsGranted())return;
         startApp();
+    }
+
+    //Basic Lifecycle Methods
+    @Override
+    public void onStart() {
+        super.onStart();
+        //getPrefs().edit().putString(MainActivity.PREFS_REPLY_ITEMS, "").apply();
+
+    }
+    @Override
+    protected void onResume(){
+        super.onResume();
+        if(MainActivity.preset != null) MainActivity.preset = prefs.getString("preset", MainActivity.preset);
+        refreshReplyItems();
+//        if(fluidSearchView != null && FluidSearchView.isDetached)
+//            fluidSearchView.build();
+    }
+    @Override
+    protected void onPause(){
+        saveReplyItems();
+        super.onPause();
+//        if(fluidSearchView != null && !FluidSearchView.isDetached)
+//            fluidSearchView.detach();
+        //MainActivity.preset = ((RepliesFragment)viewPagerAdapter.getFragment(0)).getPresetText();
+    }
+    @Override
+    protected void onStop(){
+        super.onStop();
+        //preset = presetInput.getText().toString();
+    }
+    @Override
+    protected void onDestroy(){
+        super.onDestroy();
+    }
+
+    //Other @Override methods
+    @Override
+    public void onBackPressed(){
+        for(DozeFragment dozeFragment: DozeFragment.dozeFragments){
+            if(dozeFragment.isShown){
+                if(dozeFragment.onBackPressed())return;
+            }
+        }
+        super.onBackPressed();
+    }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        //getMenuInflater().inflate(R.menu.toolbar, menu);
+        //menu.findItem(R.id.action_settings).getIcon().setTint(ContextCompat.getColor(getBaseContext(), R.color.black));
+        return true;
+    }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_settings:
+                Toast.makeText(this, "This is the settings option", Toast.LENGTH_SHORT).show();
+                break;
+            default:
+                break;
+        }
+        return true;
     }
 
     private boolean permissionsGranted(){
@@ -127,7 +189,7 @@ public class MainActivity extends AppCompatActivity{
         getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
 
 
-        setSupportActionBar(toolbar = (Toolbar)findViewById(R.id.toolbar));
+        setSupportActionBar(toolbar = findViewById(R.id.toolbar));
         /*getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         getWindow().setStatusBarColor(ContextCompat.getColor(this, R.color.colorPrimary));
         int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
@@ -180,8 +242,8 @@ public class MainActivity extends AppCompatActivity{
         if(fluidSearchView != null) return;
 
         fluidSearchView = new FluidSearchView(toolbar, this);
-        if(FluidSearchView.isDetached) fluidSearchView.build();
-        fluidSearchView.hide();
+        //if(FluidSearchView.isDetached) fluidSearchView.build();
+        //fluidSearchView.hide();
         //fluidSearchView.setOnQueryTextListener(qqqq);
     }
 
@@ -222,66 +284,7 @@ public class MainActivity extends AppCompatActivity{
         marginBottomAnimation.start();
     }
 
-    //Basic Lifecycle Methods
-    @Override
-    public void onStart() {
-        super.onStart();
-        //getPrefs().edit().putString(MainActivity.PREFS_REPLY_ITEMS, "").apply();
 
-    }
-    @Override
-    protected void onResume(){
-        super.onResume();
-        if(MainActivity.preset != null) MainActivity.preset = prefs.getString("preset", MainActivity.preset);
-        refreshReplyItems();
-//        if(fluidSearchView != null && FluidSearchView.isDetached)
-//            fluidSearchView.build();
-    }
-    @Override
-    protected void onPause(){
-        saveReplyItems();
-        super.onPause();
-//        if(fluidSearchView != null && !FluidSearchView.isDetached)
-//            fluidSearchView.detach();
-        //MainActivity.preset = ((RepliesFragment)viewPagerAdapter.getFragment(0)).getPresetText();
-    }
-    @Override
-    protected void onStop(){
-        super.onStop();
-        //preset = presetInput.getText().toString();
-    }
-    @Override
-    protected void onDestroy(){
-        super.onDestroy();
-    }
-
-    //Other @Override methods
-    @Override
-    public void onBackPressed(){
-        for(DozeFragment dozeFragment: DozeFragment.dozeFragments){
-            if(dozeFragment.isShown){
-                if(dozeFragment.onBackPressed())return;
-            }
-        }
-        super.onBackPressed();
-    }
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.toolbar, menu);
-        menu.findItem(R.id.action_settings).getIcon().setTint(ContextCompat.getColor(getBaseContext(), R.color.black));
-        return true;
-    }
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.action_settings:
-                Toast.makeText(this, "This is the settings option", Toast.LENGTH_SHORT).show();
-                break;
-            default:
-                break;
-        }
-        return true;
-    }
 
     //Handling received messaged
     SmsManager smsManager = SmsManager.getDefault();
@@ -465,7 +468,7 @@ public class MainActivity extends AppCompatActivity{
         MainActivity.preset = "Napping \uD83D\uDE34\nGet back to you soon!";
     }
 
-    public Toolbar getToolbar(){
+    public DozeToolbar getToolbar(){
         return toolbar;
     }
 

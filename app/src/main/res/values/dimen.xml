@@ -10,6 +10,7 @@
     <dimen name="item_size_small">48dp</dimen>
     <dimen name="item_size_shmedium">56dp</dimen>
     <dimen name="item_size_medium">64dp</dimen>
+    <dimen name="item_size_marge">76dp</dimen>
     <dimen name="item_size_large">94dp</dimen>
     <dimen name="item_size_xlarge">132dp</dimen>
     <dimen name="item_size_xxlarge">164dp</dimen>
