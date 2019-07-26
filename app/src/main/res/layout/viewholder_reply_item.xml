@@ -34,9 +34,11 @@
             android:id="@+id/wrapper_item_options"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:layout_alignParentEnd="true">
+            android:layout_alignParentEnd="true"
+            android:clickable="false"
+            android:focusable="false">
         </View>
-        <ImageView
+<!--        <ImageView
             android:id="@+id/item_options"
             android:layout_width="24dp"
             android:layout_height="24dp"
@@ -44,7 +46,27 @@
             android:layout_marginEnd="@dimen/padding_large"
             android:layout_marginTop="@dimen/padding_large"
             android:background="@drawable/baseline_more_horiz_black_24"
-            android:backgroundTint="@color/black"/>
+            android:backgroundTint="@color/black"/>-->
+
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/item_size_medium"
+            android:layout_marginStart="@dimen/padding_xlarge"
+            android:layout_marginTop="@dimen/padding_marge"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:textSize="20sp"
+            android:text="Work"/>
+
+        <cache.doze.Views.ExpandingOptionsButton
+            android:id="@+id/item_options"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+        </cache.doze.Views.ExpandingOptionsButton>
+
 
         <ImageView
             android:id="@+id/item_drag"
@@ -55,18 +77,6 @@
             android:layout_marginEnd="@dimen/padding_large"
             android:background="@drawable/baseline_drag_handle_24"
             android:visibility="invisible"/>
-
-        <TextView
-            android:id="@+id/title"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="@dimen/item_size_medium"
-            android:layout_marginStart="@dimen/padding_xlarge"
-            android:layout_marginTop="@dimen/padding_large"
-            android:singleLine="true"
-            android:ellipsize="end"
-            android:textSize="20sp"
-            android:text="Work"/>
 
         <LinearLayout
             android:orientation="vertical"

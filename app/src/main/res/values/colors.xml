@@ -15,6 +15,7 @@
     <color name="black">#4e4e4e</color>
     <color name="white">#fff</color>
     <color name="light_gray">#96dcdcdc</color>
+    <color name="light_gray_solid">#d8d8d8</color>
     <color name="faint_gray">#F0F0F0</color>
     <color name="cream">#c2c2c2</color>
     <color name="light_cream">#dadada</color>
@@ -40,6 +41,7 @@
     <color name="suggestion_highlight_text">#177bbd</color>
 
     <color name="transparent">#00ffffff</color>
+    <color name="transparent_slight">#72FFFFFF</color>
 
     <color name="text_color_primary">#dadada</color>
 </resources>

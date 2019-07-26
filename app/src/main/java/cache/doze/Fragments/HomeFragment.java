@@ -13,45 +13,41 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.TextView;
 
 import cache.doze.Activities.MainActivity;
 import cache.doze.Model.ReplyItem;
 import cache.doze.Model.ReplyListAdapter;
 import cache.doze.R;
-import cache.doze.Tools.ItemMoveCallback;
 import cache.doze.Views.FunFab.FunFab;
 import me.everything.android.ui.overscroll.IOverScrollDecor;
+import me.everything.android.ui.overscroll.IOverScrollUpdateListener;
 import me.everything.android.ui.overscroll.OverScrollDecoratorHelper;
 
 /**
  * Created by Chris on 2/22/2018.
  */
 
-public class RepliesFragment extends DozeFragment {
+public class HomeFragment extends DozeFragment {
 
     private Context context;
     private MainActivity mainActivity;
     public AddNewReplyFragment addNewFrag;
 
     View root;
-    TextView title;
-    RecyclerView replyRecyclerView;
-    ReplyListAdapter recyclerViewAdapter;
+    private RecyclerView replyRecyclerView;
+    private ReplyListAdapter recyclerViewAdapter;
     public FunFab fab;
 
     public ItemTouchHelper touchHelper;
     public IOverScrollDecor overScrollDecor;
 
-    private int recyclerViewScrollY;
-
-    public static RepliesFragment newInstance(int page, String title) {
-        RepliesFragment repliesFragment = new RepliesFragment();
+    public static HomeFragment newInstance(int page, String title) {
+        HomeFragment homeFragment = new HomeFragment();
         Bundle args = new Bundle();
         args.putInt("someInt", page);
         args.putString("someTitle", title);
-        repliesFragment.setArguments(args);
-        return repliesFragment;
+        homeFragment.setArguments(args);
+        return homeFragment;
     }
 
     @Override
@@ -63,9 +59,8 @@ public class RepliesFragment extends DozeFragment {
     public View onCreateView(@NonNull LayoutInflater inflater, final ViewGroup container, Bundle savedInstanceState) {
         this.context = getContext();
 
-        root = inflater.inflate(R.layout.fragment_main_replies, container, false);
+        root = inflater.inflate(R.layout.fragment_home, container, false);
         mainActivity = (MainActivity) getActivity();
-        title = root.findViewById(R.id.title);
         replyRecyclerView = root.findViewById(R.id.recycler_view);
 
         setUpRecyclerView();
@@ -80,26 +75,13 @@ public class RepliesFragment extends DozeFragment {
         replyRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         replyRecyclerView.setAdapter(recyclerViewAdapter = new ReplyListAdapter(MainActivity.replyItems, mainActivity, replyRecyclerView, this));
 
-        ItemTouchHelper.Callback callback = new ItemMoveCallback(recyclerViewAdapter);
-        touchHelper = new ItemTouchHelper(callback);
+        touchHelper = new ItemTouchHelper(recyclerViewAdapter.getTouchCallback());
 
-        setUpRecyclerViewOverScroll();
 
         replyRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            float paddingTop = getResources().getDimension(R.dimen.padding_xlarge);
-
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
-                super.onScrolled(recyclerView, dx, dy);
-                if (recyclerViewAdapter != null) recyclerViewAdapter.canAnimate = false;
-
-                if (!recyclerView.canScrollVertically(-1)) recyclerViewScrollY = 0;
-                recyclerViewScrollY += dy;
-
-                if (recyclerViewScrollY <= paddingTop) {
-                    float perc = recyclerViewScrollY / paddingTop;
-                    title.setAlpha(1 - perc);
-                } else title.setAlpha(0);
+                super.onScrolled(recyclerView, dx, dy);;
 
                 if (Math.abs(dy) > 10)
                     recyclerViewAdapter.fingerDown = false;
@@ -108,19 +90,7 @@ public class RepliesFragment extends DozeFragment {
 
 
         touchHelper.attachToRecyclerView(replyRecyclerView);
-    }
-
-    public void setUpRecyclerViewOverScroll(){
-        overScrollDecor = OverScrollDecoratorHelper.setUpOverScroll(replyRecyclerView, OverScrollDecoratorHelper.ORIENTATION_VERTICAL);
-    }
-
-    public void refreshRecyclerView(){
-        float paddingTop = getResources().getDimension(R.dimen.padding_xlarge);
-        recyclerViewScrollY = replyRecyclerView.computeVerticalScrollOffset();
-        if (recyclerViewScrollY <= paddingTop) {
-            float perc = recyclerViewScrollY / paddingTop;
-            title.setAlpha(1 - perc);
-        } else title.setAlpha(0);
+        replyRecyclerView.setOverScrollMode(View.OVER_SCROLL_NEVER);
     }
 
     public void setFab(FunFab fab) {
@@ -188,19 +158,19 @@ public class RepliesFragment extends DozeFragment {
             recyclerViewAdapter.setOnItemClickedListener(new ReplyListAdapter.onItemClickedListener() {
                 @Override
                 public void onItemClick(ReplyItem item, int position) {
-                    if(fab.isAnimating())return;
+                    if(fab.isAnimating()) return;
 /*                    if (addNewFrag.getState() == AddNewReplyFragment.STATE_ADD_NEW)
                         mainActivity.setToolbarColor(ContextCompat.getColor(context, R.color.colorPrimary), item.getColors()[0]);*/
                     //getToolbar().setTitle(item.getTitle());
                     addNewFrag.setReplyItem(item);
                     changeFragProperties(false);
                     //fab.setFabExpandedBackground(item.isChecked() ? item.getGradientTurned(GradientDrawable.Orientation.BOTTOM_TOP) : item.getGradientLighter());
-                    fab.expandFab(true, true);
+                    fab.expandFab(true, false);
                     //fab.setFabClosedBackground(item.getColors()[item.getColors().length - 1]);
                 }
             });
 
-            recyclerViewAdapter.setUp();
+            recyclerViewAdapter.init();
 
 
         }

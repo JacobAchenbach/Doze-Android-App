@@ -43,13 +43,13 @@ public class AddNewReplyFragment extends Fragment {
 
 
 
-    public static RepliesFragment newInstance(int page, String title) {
-        RepliesFragment repliesFragment = new RepliesFragment();
+    public static HomeFragment newInstance(int page, String title) {
+        HomeFragment homeFragment = new HomeFragment();
         Bundle args = new Bundle();
         args.putInt("someInt", page);
         args.putString("someTitle", title);
-        repliesFragment.setArguments(args);
-        return repliesFragment;
+        homeFragment.setArguments(args);
+        return homeFragment;
     }
 
     public void show(){
@@ -113,7 +113,7 @@ public class AddNewReplyFragment extends Fragment {
 
 //    private void initViewPages(){
 //        List<Fragment> fragments = new Vector<>();
-//        fragments.add(Fragment.instantiate(this.getContext(), RepliesFragment.class.getName()));
+//        fragments.add(Fragment.instantiate(this.getContext(), HomeFragment.class.getName()));
 //        fragments.add(Fragment.instantiate(this.getContext(), AddContactsFragment.class.getName()));
 //        viewPagerAdapter = new ViewPagerAdapter(super.get)
 //    }

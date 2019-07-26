@@ -22,7 +22,7 @@ import cache.doze.Tools.PermissionsHelper;
  * Created by Chris on 8/22/2018.
  */
 
-public class PermissionsActivity extends AppCompatActivity{
+public class PermissionsActivity extends AppCompatActivity {
 
     Activity delegate;
 
@@ -44,7 +44,7 @@ public class PermissionsActivity extends AppCompatActivity{
         setUpOkayButton();
     }
 
-    private void setUpStatusIcon(){
+    private void setUpStatusIcon() {
         statusIcon.setAlpha(0f);
         statusIcon.post(new Runnable() {
             @Override
@@ -55,21 +55,27 @@ public class PermissionsActivity extends AppCompatActivity{
         });
     }
 
-    private void setUpOkayButton(){
+    private void setUpOkayButton() {
         okayButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                statusIcon.setBackground(ContextCompat.getDrawable(getBaseContext(), R.drawable.cute_android));
-                if(!PermissionsHelper.checkReceiveSMSPermission(getBaseContext()))
-                    PermissionsHelper.getPermissionToReceiveSMS(delegate);
-                else if (!PermissionsHelper.checkReadSMSPermission(getBaseContext()))
-                    PermissionsHelper.getPermissionToReadSMS(delegate);
-                else if(!PermissionsHelper.checkReadContactsPermission(getBaseContext()))
-                    PermissionsHelper.getPermissionToReadContacts(delegate);
-                else
-                    finish();
+                runPermissionsTest();
             }
         });
+    }
+
+    private void runPermissionsTest() {
+        if (!PermissionsHelper.checkReceiveSMSPermission(getBaseContext())) {
+            PermissionsHelper.getPermissionToReceiveSMS(delegate);
+            setDroidState(2);
+        } else if (!PermissionsHelper.checkReadSMSPermission(getBaseContext())) {
+            PermissionsHelper.getPermissionToReadSMS(delegate);
+            setDroidState(3);
+        } else if (!PermissionsHelper.checkReadContactsPermission(getBaseContext())) {
+            PermissionsHelper.getPermissionToReadContacts(delegate);
+            setDroidState(3);
+        } else
+            animateAndEnd();
     }
 
     @Override
@@ -77,78 +83,63 @@ public class PermissionsActivity extends AppCompatActivity{
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == PermissionsHelper.RECEIVE_SMS_PERMISSIONS_REQUEST) { //Receive SMS
             if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) { //Not null and permission granted
-                if(!PermissionsHelper.checkReadSMSPermission(delegate)){
-                    PermissionsHelper.getPermissionToReadSMS(delegate);
-                }else if(!PermissionsHelper.checkReadContactsPermission(delegate)) {
-                    PermissionsHelper.getPermissionToReadContacts(delegate);
-                }else {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            animateAndEnd();
-                        }
-                    });
-                }
-            } else { //Permission denied
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        //:(
+                        runPermissionsTest();
                     }
                 });
+            } else { //Permission Denied
+
             }
 
         }//Read SMS
         else if (requestCode == PermissionsHelper.READ_SMS_PERMISSIONS_REQUEST) {
             if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) { //Not null and permission granted
-                if(!PermissionsHelper.checkReceiveSMSPermission(delegate)){
-                    PermissionsHelper.getPermissionToReceiveSMS(delegate);
-                }else if(!PermissionsHelper.checkReadContactsPermission(delegate)) {
-                    PermissionsHelper.getPermissionToReadContacts(delegate);
-                }else {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            animateAndEnd();
-                        }
-                    });
-                }
-            } else { //Permission denied
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        //:(
+                        runPermissionsTest();
                     }
                 });
+            } else { //Permission denied
+
             }
 
         }//Read Contacts
-        else if(requestCode == PermissionsHelper.READ_CONTACTS_PERMISSIONS_REQUEST) {
+        else if (requestCode == PermissionsHelper.READ_CONTACTS_PERMISSIONS_REQUEST) {
             if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) { //Not null and permission granted
-                if(!PermissionsHelper.checkReadSMSPermission(delegate)){
-                    PermissionsHelper.getPermissionToReadSMS(delegate);
-                }else if(!PermissionsHelper.checkReceiveSMSPermission(delegate)) {
-                    PermissionsHelper.getPermissionToReceiveSMS(delegate);
-                }else {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            animateAndEnd();
-                        }
-                    });
-                }
-            } else { //Permission denied
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-
+                        runPermissionsTest();
                     }
                 });
+            } else { //Permission denied
+
             }
         }
     }
 
-    private void animateAndEnd(){
+    private void setDroidState(int state) {
+        switch (state) {
+            case 1:
+                statusIcon.setBackground(ContextCompat.getDrawable(getBaseContext(), R.drawable.cute_android_sleeping));
+                break;
+            case 2:
+                statusIcon.setBackground(ContextCompat.getDrawable(getBaseContext(), R.drawable.cute_android_half_awake));
+                final ObjectAnimator moveAnim
+                        = ObjectAnimator.ofFloat(statusIcon, "y", statusIcon.getY(), -statusIcon.getHeight());
+                moveAnim.setInterpolator(new AccelerateInterpolator());
+                moveAnim.setDuration(150);
+                break;
+            case 3:
+                statusIcon.setBackground(ContextCompat.getDrawable(getBaseContext(), R.drawable.cute_android));
+                break;
+        }
+    }
+
+    private void animateAndEnd() {
         final ObjectAnimator moveAnim
                 = ObjectAnimator.ofFloat(statusIcon, "y", statusIcon.getY(), -statusIcon.getHeight());
         moveAnim.setInterpolator(new AccelerateInterpolator());
@@ -168,7 +159,7 @@ public class PermissionsActivity extends AppCompatActivity{
     }
 
     @Override
-    public void onBackPressed(){
+    public void onBackPressed() {
         finishAffinity();
     }
 }

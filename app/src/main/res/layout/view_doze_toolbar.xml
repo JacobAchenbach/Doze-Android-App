@@ -14,7 +14,7 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-        <TextView
+        <cache.doze.Views.PowerTextView
             android:id="@+id/text_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -22,7 +22,8 @@
             android:textSize="40sp"
             android:textStyle="bold"
             android:layout_centerVertical="true"
-            android:layout_marginBottom="@dimen/padding_small"/>
+            android:layout_marginBottom="@dimen/padding_small"
+            app:textFont="Butler_Bold_Stencil.otf"/>
 
         <ImageView
             android:id="@+id/icon_settings"

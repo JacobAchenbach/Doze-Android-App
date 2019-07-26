@@ -10,6 +10,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.media.AudioAttributes;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -30,6 +32,8 @@ public class MonitorSmsService extends Service {
     NotificationManager nMN;
     Notification.Builder runningNotification;
     NotificationCompat.Builder runningCompatNotification;
+    Uri soundUri;
+    AudioAttributes audioAttributes;
     private String[] randomSynonyms = {"Hey, you", "Circumspect!", "Alert!",
             "Attention!", "Notice!", "Heads Up!", "How Exciting!",
             "Good News!", "We Got You", ":)", "It Begins...", "\"Nice\"", "Doze is Cool and,"};
@@ -43,20 +47,33 @@ public class MonitorSmsService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Context context = getBaseContext();
+
         Intent notifIntent = new Intent(context, MainActivity.class);
 
         PendingIntent pi = PendingIntent.getActivity(context,0, notifIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         nMN = (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
         String randomMsg = randomSynonyms[new Random().nextInt(randomSynonyms.length)];
 
+        soundUri = Uri.parse(
+                "android.resource://" +
+                        getApplicationContext().getPackageName() +
+                        "/" +
+                        R.raw.doze_notif_on);
+        audioAttributes = new AudioAttributes.Builder()
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .setUsage(AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
+                .build();
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             runningNotification = new Notification.Builder(this, MainActivity.CHANNEL_ID);
+
+
 
             runningNotification
                     .setOngoing(true)
                     .setContentTitle(randomMsg)
                     .setContentText("Doze is responding to your texts \uD83D\uDE34")
-                    .setSmallIcon(R.drawable.app_icon)
+                    .setSmallIcon(R.drawable.doze_icon_with_background)
                     .setColor(ContextCompat.getColor(context, R.color.colorAccent))
                     .setContentIntent(pi)
                     .setAutoCancel(true);
@@ -72,10 +89,11 @@ public class MonitorSmsService extends Service {
                     .setOngoing(true)
                     .setContentTitle(randomMsg)
                     .setContentText("Doze is responding to your texts \uD83D\uDE34")
-                    .setSmallIcon(R.drawable.app_icon)
+                    .setSmallIcon(R.drawable.doze_icon_with_background)
                     .setContentIntent(pi)
                     .setAutoCancel(true)
-                    .setPriority(NotificationCompat.PRIORITY_MIN);
+                    .setPriority(NotificationCompat.PRIORITY_MIN)
+                    .setSound(soundUri);
 
             Notification notification = runningCompatNotification.build();
             startForeground(MainActivity.NOTIFICATION_ID, notification);
@@ -92,8 +110,13 @@ public class MonitorSmsService extends Service {
     private void createChannel(){
         NotificationChannel channel = new NotificationChannel(MainActivity.CHANNEL_ID,
                 "Reply Service",
-                NotificationManager.IMPORTANCE_HIGH);
+                NotificationManager.IMPORTANCE_MIN);
+
+        channel.setSound(soundUri, audioAttributes);
+        channel.enableVibration(true);
+        channel.setVibrationPattern(new long[]{100, 150});
         nMN.createNotificationChannel(channel);
+
         runningNotification.setChannelId(MainActivity.CHANNEL_ID);
     }
 

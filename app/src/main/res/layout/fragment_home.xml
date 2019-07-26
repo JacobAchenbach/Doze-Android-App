@@ -7,14 +7,6 @@
         android:id="@+id/main_screen"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-        <TextView
-            android:id="@+id/title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/padding_large"
-            android:layout_marginTop="@dimen/padding_large"
-            android:text=""
-            android:textSize="28sp"/>
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/recycler_view"
@@ -28,6 +20,18 @@
             android:scrollbarSize="@dimen/padding_medium">
 
         </android.support.v7.widget.RecyclerView>
+
+        <TextView
+            android:id="@+id/text_no_replies"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/padding_large"
+            android:text="Feels lonely.. add some Replies to freshen up the place"
+            android:textColor="@color/colorAccent"
+            android:textSize="20sp"
+            android:textAlignment="center"
+            android:layout_centerInParent="true"
+            android:visibility="gone"/>
 
     </RelativeLayout>
 </RelativeLayout>

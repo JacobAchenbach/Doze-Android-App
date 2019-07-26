@@ -35,104 +35,111 @@
             android:layout_height="match_parent">
 
             <RelativeLayout
-                android:id="@+id/fab_header"
+                android:id="@+id/content_wrapper"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@color/faint_gray">
+                android:layout_height="match_parent">
 
-                <LinearLayout
-                    android:id="@+id/submit_button_wrapper"
-                    android:layout_width="wrap_content"
-                    android:layout_height="@dimen/item_size_medium"
-                    android:layout_alignParentEnd="true"
-                    android:gravity="end|center_vertical"
-                    android:paddingEnd="@dimen/padding_xlarge"
-                    android:visibility="gone">
 
-                    <TextView
-                        android:id="@+id/submit_button"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@color/transparent"
-                        android:elevation="2dp"
-                        android:fontFamily="monospace"
-                        android:paddingEnd="@dimen/padding_medium"
-                        android:text="Save"
-                        android:textAllCaps="true"
-                        android:textStyle="bold" />
-
-                    <LinearLayout
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:gravity="center">
-
-                        <ImageView
-                            android:id="@+id/submit_image"
-                            android:layout_width="16dp"
-                            android:layout_height="16dp"
-                            android:background="@drawable/baseline_check_black_18"
-                            android:backgroundTint="@color/black" />
-                    </LinearLayout>
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/cancel_button_wrapper"
-                    android:layout_width="wrap_content"
-                    android:layout_height="@dimen/item_size_medium"
-                    android:gravity="start|center_vertical"
-                    android:paddingStart="@dimen/padding_xlarge"
-                    android:visibility="gone">
-
-                    <TextView
-                        android:id="@+id/cancel_button"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@color/transparent"
-                        android:elevation="2dp"
-                        android:fontFamily="monospace"
-                        android:paddingEnd="@dimen/padding_small"
-                        android:text="Cancel"
-                        android:textAllCaps="true"
-                        android:textStyle="bold" />
-
-                    <LinearLayout
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:gravity="center">
-
-                        <ImageView
-                            android:id="@+id/cancel_image"
-                            android:layout_width="16dp"
-                            android:layout_height="16dp"
-                            android:background="@drawable/baseline_close_black_18"
-                            android:backgroundTint="@color/black"
-                            android:elevation="4dp" />
-                    </LinearLayout>
-                </LinearLayout>
-
-                <View
-                    android:id="@+id/divider"
+                <RelativeLayout
+                    android:id="@+id/fab_header"
                     android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_below="@id/cancel_button_wrapper"
-                    android:layout_marginStart="@dimen/padding_large"
-                    android:layout_marginEnd="@dimen/padding_large"
-                    android:background="@color/white"
-                    android:visibility="gone" />
+                    android:layout_height="wrap_content"
+                    android:background="@color/faint_gray">
+
+                    <LinearLayout
+                        android:id="@+id/submit_button_wrapper"
+                        android:layout_width="wrap_content"
+                        android:layout_height="@dimen/item_size_medium"
+                        android:layout_alignParentEnd="true"
+                        android:gravity="end|center_vertical"
+                        android:paddingEnd="@dimen/padding_xlarge"
+                        android:visibility="gone">
+
+                        <TextView
+                            android:id="@+id/submit_button"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@color/transparent"
+                            android:elevation="2dp"
+                            android:fontFamily="monospace"
+                            android:paddingEnd="@dimen/padding_medium"
+                            android:text="Save"
+                            android:textAllCaps="true"
+                            android:textStyle="bold" />
+
+                        <LinearLayout
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:gravity="center">
+
+                            <ImageView
+                                android:id="@+id/submit_image"
+                                android:layout_width="16dp"
+                                android:layout_height="16dp"
+                                android:background="@drawable/baseline_check_black_18"
+                                android:backgroundTint="@color/black" />
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/cancel_button_wrapper"
+                        android:layout_width="wrap_content"
+                        android:layout_height="@dimen/item_size_medium"
+                        android:gravity="start|center_vertical"
+                        android:paddingStart="@dimen/padding_xlarge"
+                        android:visibility="gone">
+
+                        <TextView
+                            android:id="@+id/cancel_button"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@color/transparent"
+                            android:elevation="2dp"
+                            android:fontFamily="monospace"
+                            android:paddingEnd="@dimen/padding_small"
+                            android:text="Cancel"
+                            android:textAllCaps="true"
+                            android:textStyle="bold" />
+
+                        <LinearLayout
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:gravity="center">
+
+                            <ImageView
+                                android:id="@+id/cancel_image"
+                                android:layout_width="16dp"
+                                android:layout_height="16dp"
+                                android:background="@drawable/baseline_close_black_18"
+                                android:backgroundTint="@color/black"
+                                android:elevation="4dp" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <View
+                        android:id="@+id/divider"
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_below="@id/cancel_button_wrapper"
+                        android:layout_marginStart="@dimen/padding_large"
+                        android:layout_marginEnd="@dimen/padding_large"
+                        android:background="@color/white"
+                        android:visibility="gone" />
+                </RelativeLayout>
+
+
+                <RelativeLayout
+                    android:id="@+id/container"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/fab_header"
+                    android:alpha="0"
+                    android:background="@color/white">
+
+                </RelativeLayout>
+
             </RelativeLayout>
-
-
-            <RelativeLayout
-                android:id="@+id/container"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/fab_header"
-                android:alpha="0"
-                android:background="@color/white">
-
-            </RelativeLayout>
-
 
             <ImageView
                 android:id="@+id/icon"

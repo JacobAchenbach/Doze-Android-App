@@ -56,6 +56,7 @@ public class FunFab extends CardView {
     private View rootView;
     private View background;
     private CardView fabView;
+    private RelativeLayout fabViewWrapper;
     private RelativeLayout.LayoutParams fabLP;
     private ImageView icon;
     private RelativeLayout containerHeader;
@@ -130,6 +131,7 @@ public class FunFab extends CardView {
 
         background = rootView.findViewById(R.id.background);
         fabView = rootView.findViewById(R.id.fab);
+        fabViewWrapper = rootView.findViewById(R.id.content_wrapper);
         icon = rootView.findViewById(R.id.icon);
         containerHeader = rootView.findViewById(R.id.fab_header);
         submitButton = rootView.findViewById(R.id.submit_button_wrapper);
@@ -260,7 +262,7 @@ public class FunFab extends CardView {
         final int startTime = !fast ? START_ANIM_TIME : START_ANIM_TIME * 2 / 3;
         final int endTime = !fast ? END_ANIM_TIME : END_ANIM_TIME * 2 / 3;
 
-        if(fabLP == null) fabLP = (RelativeLayout.LayoutParams) fabView.getLayoutParams();
+        if (fabLP == null) fabLP = (RelativeLayout.LayoutParams) fabView.getLayoutParams();
         if (knownBottom == -1) knownBottom = rootView.getBottom();
         if (marginEnd == -1) marginEnd = fabLP.getMarginEnd();
         if (marginBottom == -1) marginBottom = fabLP.bottomMargin;
@@ -520,7 +522,8 @@ public class FunFab extends CardView {
         ValueAnimator fabColorAnim;
         if (show) {
             fabColorAnim = ValueAnimator.ofArgb(fabView.getCardBackgroundColor().getDefaultColor(), ContextCompat.getColor(context, R.color.white));
-
+            fabViewWrapper.setAlpha(0f);
+            fabViewWrapper.animate().alpha(1f).setStartDelay(startTime).setDuration(endTime).start();
 
             expandedView.setAlpha(0f);
             expandedView.setVisibility(View.VISIBLE);
@@ -565,7 +568,7 @@ public class FunFab extends CardView {
             fragment.onResume();
         } else {
             fabColorAnim = ValueAnimator.ofArgb(fabView.getCardBackgroundColor().getDefaultColor(), ContextCompat.getColor(context, R.color.colorAccent));
-
+            fabViewWrapper.animate().alpha(0f).setDuration(startTime / 2).start();
 
             expandedView.setAlpha(1f);
             expandedView.animate().alpha(0f).setDuration(startTime).start();
@@ -623,7 +626,7 @@ public class FunFab extends CardView {
         background.setClickable(enabled);
         background.setFocusable(enabled);
         if (background.getAlpha() != 0f || enabled) {
-            background.animate().alpha(enabled? 0.2f: 0f).setDuration(animTime).start();
+            background.animate().alpha(enabled ? 0.2f : 0f).setDuration(animTime).start();
         }
     }
 
@@ -663,7 +666,7 @@ public class FunFab extends CardView {
 
     class SnackRunnable implements Runnable {
         boolean animRan = false;
-        float preY = -1;
+        float oldPadding = -1;
 
         int snackEndTime = 1750;
 
@@ -675,7 +678,8 @@ public class FunFab extends CardView {
 
         @Override
         public void run() {
-            if (preY == -1) preY = fabView.getY();
+            if (oldPadding == -1) oldPadding = fabView.getPaddingBottom();
+
             if (handler != null) {
                 handler.removeCallbacks(runnable);
                 handler.postDelayed(runnable, snackEndTime);
@@ -685,7 +689,15 @@ public class FunFab extends CardView {
             handler.postDelayed(runnable, snackEndTime);
             fabView.setAnimation(null);
             fabView.clearAnimation();
-            fabView.animate().y(preY - (snackbar.getView().getHeight())).setDuration(200).setListener(new AnimatorListenerAdapter() {
+            ValueAnimator marginBottomAnimation = ValueAnimator.ofInt(fabView.getPaddingBottom(), snackbar.getView().getHeight() + fabLP.bottomMargin).setDuration(200);
+            marginBottomAnimation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                @Override
+                public void onAnimationUpdate(ValueAnimator valueAnimator) {
+                    fabView.setPadding(0, 0, 0, (Integer) valueAnimator.getAnimatedValue());
+                }
+            });
+            marginBottomAnimation.start();
+            /*fabView.animate().y(preY - (snackbar.getView().getHeight())).setDuration(200).setListener(new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationCancel(Animator animation) {
                     super.onAnimationCancel(animation);
@@ -700,13 +712,26 @@ public class FunFab extends CardView {
 
                 private void end() {
                 }
-            }).start();
+            }).start();*/
         }
 
         public void waitAndHide() {
             handler = null;
-            if (!open) fabView.animate().y(getStartY()).setDuration(250).start();
-            else fabView.animate().y(preY).setDuration(250).start();
+            ValueAnimator marginBottomAnimation;
+            /*if (!open)
+                marginBottomAnimation = ValueAnimator.ofInt(fabLP.bottomMargin, snackbar.getView().getHeight()).setDuration(200);
+            else*/
+                marginBottomAnimation = ValueAnimator.ofInt(fabLP.bottomMargin, (int) oldPadding).setDuration(200);
+
+            marginBottomAnimation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                @Override
+                public void onAnimationUpdate(ValueAnimator valueAnimator) {
+                    fabView.setPadding(0, 0, 0, (Integer) valueAnimator.getAnimatedValue());
+//                    fabLP.bottomMargin = (Integer) valueAnimator.getAnimatedValue();
+//                    fabView.setLayoutParams(fabLP);
+                }
+            });
+            marginBottomAnimation.start();
         }
     }
 
@@ -818,7 +843,7 @@ public class FunFab extends CardView {
                             dist -= change;
                         }
 
-                        if(newY < openY && newY > maxY){
+                        if (newY < openY && newY > maxY) {
                             float dest = openY - maxY; // Cus maxY < openY
                             float cur = newY - maxY;
                             float percentage = 1 - (cur / dest);//1 - (maxY / newY);
@@ -953,7 +978,7 @@ public class FunFab extends CardView {
         if (doubleSpeed)
             velocity *= 1.5f;
         //Finally figured out that setMaxValue uses: large numbers for bottom of screen, small numbers for top of screen.
-        flingAnimation.setStartVelocity(velocity).setMinValue(0).setMaxValue(suspended? to - openY - 1: to - openY).setFriction(0.5f);
+        flingAnimation.setStartVelocity(velocity).setMinValue(0).setMaxValue(suspended ? to - openY - 1 : to - openY).setFriction(0.5f);
         flingAnimation.addEndListener(new DynamicAnimation.OnAnimationEndListener() {
             @Override
             public void onAnimationEnd(DynamicAnimation animation, boolean canceled, float value, float velocity) {

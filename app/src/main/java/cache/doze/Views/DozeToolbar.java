@@ -12,12 +12,16 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import cache.doze.R;
 import cache.doze.Tools.QuickTools;
+import me.everything.android.ui.overscroll.IOverScrollDecor;
+import me.everything.android.ui.overscroll.IOverScrollUpdateListener;
+import me.everything.android.ui.overscroll.OverScrollDecoratorHelper;
 
 import static android.util.TypedValue.COMPLEX_UNIT_PX;
 
@@ -39,6 +43,9 @@ public class DozeToolbar extends Toolbar {
     private float maxTextSize;
     private float minIconSize;
     private float maxIconSize;
+
+    private float maxOverScrollTextSize;
+    private float maxOverScrollIconSize;
 
 
     public DozeToolbar(Context context) {
@@ -69,9 +76,12 @@ public class DozeToolbar extends Toolbar {
     public void setScroller(RecyclerView recyclerView){
         this.recyclerView = recyclerView;
 
-        post(new Runnable() {
+
+        getViewTreeObserver().addOnGlobalLayoutListener (new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
-            public void run() {
+            public void onGlobalLayout() {
+                DozeToolbar.this.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+
                 initValues();
                 setUpRecyclerView();
             }
@@ -87,6 +97,10 @@ public class DozeToolbar extends Toolbar {
         maxIconSize = settingsIcon.getHeight();
         minIconSize = QuickTools.convertDpToPx(context, 28);
         maxEndMargins = getResources().getDimension(R.dimen.padding_large);
+
+        int overScrollChange = QuickTools.convertDpToPx(context, 5);
+        maxOverScrollTextSize = maxTextSize + overScrollChange;
+        maxOverScrollIconSize = maxIconSize + overScrollChange;
     }
 
     private void setUpRecyclerView(){
@@ -136,6 +150,34 @@ public class DozeToolbar extends Toolbar {
                 settingsLP.height = settingsLP.width = iconHeight;
                 //settingsLP.rightMargin = iconMargin;
                 settingsIcon.setLayoutParams(settingsLP);
+            }
+        });
+
+        IOverScrollDecor overScrollDecor = OverScrollDecoratorHelper.setUpOverScroll(recyclerView, OverScrollDecoratorHelper.ORIENTATION_VERTICAL);
+        overScrollDecor.setOverScrollUpdateListener(new IOverScrollUpdateListener() {
+            int maxOverScroll = 200;
+            @Override
+            public void onOverScrollUpdate(IOverScrollDecor decor, int state, float offset) {
+                final View view = decor.getView();
+                if (offset > 0) { // 'view' is currently being over-scrolled from the top.
+
+                    float percentage = offset >= maxOverScroll? 1: offset / maxOverScroll;
+
+                    title.setTextSize(COMPLEX_UNIT_PX, maxOverScrollTextSize - ((maxOverScrollTextSize - maxTextSize) * (1 - percentage)));
+                    ViewGroup.MarginLayoutParams titleLP = (MarginLayoutParams) title.getLayoutParams();
+                    title.setLayoutParams(titleLP);
+
+                    int iconHeight = (int) (maxOverScrollIconSize - ((maxOverScrollIconSize - maxIconSize) * (1 - percentage)));
+                    ViewGroup.MarginLayoutParams settingsLP = (MarginLayoutParams) settingsIcon.getLayoutParams();
+                    settingsLP.height = settingsLP.width = iconHeight;
+                    settingsIcon.setLayoutParams(settingsLP);
+
+                } else if (offset < 0) { // 'view' is currently being over-scrolled from the bottom.
+
+                } else {
+                    // No over-scroll is in-effect.
+                    // This is synonymous with having (state == STATE_IDLE).
+                }
             }
         });
     }

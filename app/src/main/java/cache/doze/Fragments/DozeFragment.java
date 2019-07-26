@@ -21,6 +21,7 @@ import java.util.Queue;
 
 import cache.doze.Activities.MainActivity;
 import cache.doze.R;
+import cache.doze.Views.DozeSnackbar;
 import cache.doze.Views.DozeToolbar;
 
 /**
@@ -40,7 +41,10 @@ public class DozeFragment extends Fragment {
     public final static int ANIMATION_TIME = 250;
 
     public DozeToolbar getToolbar(){
-        return ((MainActivity)getActivity()).getToolbar();
+        return getActivity() != null? ((MainActivity)getActivity()).getToolbar(): null;
+    }
+    public DozeSnackbar getSnackbar() {
+        return getActivity() != null? ((MainActivity)getActivity()).getSnackbar(): null;
     }
 
     @Override

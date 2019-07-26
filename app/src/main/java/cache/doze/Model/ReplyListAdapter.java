@@ -8,6 +8,7 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.content.Context;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
@@ -18,6 +19,7 @@ import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.text.TextUtils;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -30,16 +32,10 @@ import android.view.animation.AnimationUtils;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.PopupWindow;
 import android.widget.TextView;
 
-import com.skydoves.powermenu.AbstractPowerMenu;
-import com.skydoves.powermenu.CustomPowerMenu;
-import com.skydoves.powermenu.MenuAnimation;
 import com.skydoves.powermenu.MenuBaseAdapter;
-import com.skydoves.powermenu.OnMenuItemClickListener;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -47,24 +43,28 @@ import java.util.Random;
 
 import cache.doze.Activities.MainActivity;
 import cache.doze.Fragments.AddNewReplyFragment;
-import cache.doze.Fragments.RepliesFragment;
+import cache.doze.Fragments.HomeFragment;
 import cache.doze.R;
-import cache.doze.Tools.ItemMoveCallback;
 import cache.doze.Tools.QuickTools;
+import cache.doze.Views.ExpandingOptionsButton;
 import cache.doze.Views.FunFab.FunFab;
 import me.everything.android.ui.overscroll.IOverScrollDecor;
+import me.everything.android.ui.overscroll.OverScrollDecoratorHelper;
 
 /**
  * Adapter and ViewHolder Classes
  */
 
-public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.ViewHolder> implements ItemMoveCallback.ItemTouchHelperContract {
+public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.ViewHolder>{
 
     public Context context;
-    RecyclerView recyclerView;
+    private RecyclerView recyclerView;
+
     private List<ReplyItem> replyItems;
+    private List<ExpandingOptionsButton> optionsButtons;
+
     private MainActivity mainActivity;
-    private RepliesFragment repliesFragment;
+    private HomeFragment homeFragment;
     private AddNewReplyFragment addNewFrag;
     private ItemTouchHelper touchHelper;
     private IOverScrollDecor overScrollDecor;
@@ -82,27 +82,30 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
     public boolean fingerDown;
     private boolean dragging;
 
-    public ReplyListAdapter(List<ReplyItem> items, MainActivity mainActivity, RecyclerView recyclerView, RepliesFragment repliesFragment) {
+    public ReplyListAdapter(List<ReplyItem> items, MainActivity mainActivity, RecyclerView recyclerView, HomeFragment homeFragment) {
         this.replyItems = items;
         this.mainActivity = mainActivity;
         this.recyclerView = recyclerView;
-        this.repliesFragment = repliesFragment;
+        this.homeFragment = homeFragment;
+        optionsButtons = new ArrayList<>();
 
         this.context = recyclerView.getContext();
         canAnimate = true;
+
     }
 
-    public void setUp(){
-        addNewFrag = repliesFragment.addNewFrag;
-        fab = repliesFragment.fab;
-        touchHelper = repliesFragment.touchHelper;
-        overScrollDecor = repliesFragment.overScrollDecor;
+    public void init() {
+        addNewFrag = homeFragment.addNewFrag;
+        fab = homeFragment.fab;
+        touchHelper = homeFragment.touchHelper;
+        overScrollDecor = homeFragment.overScrollDecor;
     }
 
-    public void fixRecyclerView(){
-        repliesFragment.refreshRecyclerView();
-        repliesFragment.setUpRecyclerViewOverScroll();
-    }
+
+
+//    public void fixRecyclerView() {
+//        homeFragment.setUpRecyclerViewOverScroll();
+//    }
 
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -115,16 +118,17 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
     boolean longClicked;
     int lastPosOnScreen = -1;
     public boolean canAnimate;
-    @Override public void onBindViewHolder(@NonNull final ViewHolder holder, int position) {
+
+    @Override
+    public void onBindViewHolder(@NonNull final ViewHolder holder, int position) {
         final ReplyItem item = replyItems.get(holder.getAdapterPosition());
         holder.title.setText(item.getTitle());
         holder.replyText.setText(item.getReplyText());
         holder.contactsText.setText(getSomeContacts(item));
 
-        if(item.getGradient() == null) setUpColorScheme(holder, item);
+        if (item.getGradient() == null) setUpColorScheme(holder, item);
         holder.enabledInd.setBackground(item.getGradient());
         holder.disabledInd.setBackground(item.getBorder());
-        setHandle(holder, item.isChecked());
 
         setEnabled(holder, item.isChecked(), false);
 
@@ -132,279 +136,20 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
         holder.itemView.setTag(item);
 
         setUpTouchListener(position, holder);
-        setUpOptionsHandle(position, holder);
+        setUpOptionsHandle(holder.getAdapterPosition(), holder);
         setUpLoadAnim(position, holder);
     }
 
-    @Override
-    public void onViewAttachedToWindow(@NonNull ViewHolder holder) {
-        super.onViewAttachedToWindow(holder);
-        int index = recyclerView.getChildAdapterPosition(holder.itemView);
-        setHandle(holder, replyItems.get(index).isChecked());
-    }
-
-    private void setHandle(ViewHolder holder, boolean checked){
-        holder.optionsHandle.setBackground(ContextCompat.getDrawable(context, dragging? R.drawable.baseline_check_black_24: R.drawable.baseline_more_horiz_black_24));
-        holder.optionsHandle.getBackground().setTint(dragging? ContextCompat.getColor(context, R.color.thatsGoodGreen):
-                checked? ContextCompat.getColor(context, R.color.white): ContextCompat.getColor(context, R.color.black));
-        holder.dragHandle.setVisibility(dragging? View.VISIBLE: View.INVISIBLE);
-    }
-
-    private void setUpLoadAnim(int position, ViewHolder holder){
-        LinearLayoutManager lm = (LinearLayoutManager) recyclerView.getLayoutManager();
-        lastPosOnScreen = lm.findLastVisibleItemPosition() + 1;
-        int firstItemPos = lm.findFirstCompletelyVisibleItemPosition();
-        int time = 150 + 50 * (position - firstItemPos + 1);
-        //if(time > 800) time = 800;
-        //animateIn(holder, position, time);
-        if(canAnimate) animateIn(holder, position, time);
-        else holder.itemView.setAlpha(1f);
-    }
-    private int lastPosition = -1;
-    private void animateIn(ViewHolder holder, int position, int time)
-    {
-        // If the bound view wasn't previously displayed on screen, it's animated
-        if (position > lastPosition) {
-            View itemview = holder.itemView;
-            itemview.post(new Runnable() {
-                @Override
-                public void run() {
-                    Animation animation = AnimationUtils.loadAnimation(context, R.anim.slide_in_bottom);
-                    animation.setDuration(time);
-                    animation.setInterpolator(new DecelerateInterpolator());
-                    holder.itemView.startAnimation(animation);
-                    itemview.animate().alpha(1f).setDuration(250).setStartDelay(250 + time / 4).start();
-                    lastPosition = position;
-                }
-            });
-        }else
-            holder.itemView.setAlpha(1f);
-    }
-
-    @Override
-    public void onViewDetachedFromWindow(@NonNull ViewHolder holder) {
-        super.onViewDetachedFromWindow(holder);
-        holder.itemView.clearAnimation();
-    }
-
-    private String getSomeContacts(ReplyItem item){
-        ArrayList<Contact> contacts = item.getContacts();
-        if(contacts == null || contacts.isEmpty()) return "No Contacts Selected ";
-
-        StringBuilder stringBuilder = new StringBuilder();
-        char lastChar = contacts.get(0).getShortenedAddress().charAt(0);
-
-        if(contacts.size() == 1)
-            stringBuilder.append(contacts.get(0).getAddress());
-        else
-            stringBuilder.append(contacts.get(0).getShortenedAddress());
-
-        if(contacts.size() == 2) {
-            stringBuilder.append(", and ");
-            stringBuilder.append(contacts.get(1).getShortenedAddress());
-        }else if(contacts.size() == 3){
-            String fin = ", " + contacts.get(1).getShortenedAddress() + ", " +contacts.get(2).getShortenedAddress();
-            stringBuilder.append(fin);
-            return stringBuilder.toString();
-        }
-
-        if(contacts.size() > 3)
-            stringBuilder.append(", ");
-
-        boolean goBack = false;
-        int refIndex = -1;
-        int size = 1;
-        for(int i = 1; i < contacts.size(); i++){
-            if(i == -1)break;
-            String currentName = contacts.get(i).getShortenedAddress();
-            if(i == contacts.size() - 1){
-                if(contacts.size() == 4){
-                    stringBuilder.append(currentName);
-                    String fin = " and 1 other...";
-                    stringBuilder.append(fin);
-                    break;
-                }
-                if(goBack) {
-                    stringBuilder.append(currentName);
-                    String fin = contacts.size() > 3? " and " +(contacts.size() - 3) +" others...": "";
-                    stringBuilder.append(fin);
-                    break;
-                }else {
-                    i = refIndex - 1;
-                    goBack = true;
-                    continue;
-                }
-            }
-            if(currentName.charAt(0) == lastChar && !goBack){
-                refIndex = i;
-            }else{
-                if(size == 1) {
-                    stringBuilder.append(currentName);
-                    stringBuilder.append(", ");
-                    lastChar = currentName.charAt(0);
-                    size++;
-                }else if(size == 2){
-                    stringBuilder.append(currentName);
-                    String fin = ", and " +(contacts.size() - 3) +" others...";
-                    stringBuilder.append(fin);
-                    break;
-                }
-            }
-
-        }
-
-        return stringBuilder.toString();
-    }
-
-    private void setUpColorScheme(ViewHolder holder, ReplyItem item){
-        String[] gradient = QuickTools.getRandomGradient().split(" ");
-        gradient = new String[]{Integer.toHexString(ContextCompat.getColor(context, R.color.colorPrimary)),
-                Integer.toHexString(ContextCompat.getColor(context, R.color.colorPrimaryDark)), ""};
-        item.setColorScheme(context, gradient);
-        holder.enabledInd.setBackground(item.getGradient());
-    }
-
-    private void setUpOptionsHandle(int position, ViewHolder holder){
-        Context context = holder.title.getContext();
-
-        CustomPowerMenu powerMenu = new CustomPowerMenu.Builder<>(context, new CustomSpinnerAdapter((LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE)))
-                .addItem(new SpinnerItem("Reorder", ContextCompat.getDrawable(context, R.drawable.baseline_reorder_black_24)))
-                .addItem(new SpinnerItem("Delete", ContextCompat.getDrawable(context, R.drawable.baseline_close_black_24)))
-                .setAnimation(MenuAnimation.SHOWUP_TOP_RIGHT)
-                .setMenuRadius(10f)
-                .setMenuShadow(10f)
-                .setShowBackground(false)
-                .setWidth((int) context.getResources().getDimension(R.dimen.item_size_xxlarge))
-                .build();
-
-        try{
-            Field menuWindowF = AbstractPowerMenu.class.getDeclaredField("menuWindow");
-            menuWindowF.setAccessible(true);
-            PopupWindow menuWindow = (PopupWindow) menuWindowF.get(powerMenu);
-            menuWindow.setAnimationStyle(R.style.PopupAnimation);
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-
-        OnMenuItemClickListener<SpinnerItem> onMenuItemClickListener = new OnMenuItemClickListener<SpinnerItem>() {
-            @Override
-            public void onItemClick(int index, SpinnerItem item) {
-                switch (index){
-                    case 0:
-                        setDragging(true);
-                        break;
-                    case 1:
-                        removeItem(holder, index);
-                        break;
-                }
-                powerMenu.dismiss();
-            }
-        };
-
-        powerMenu.setOnMenuItemClickListener(onMenuItemClickListener);
-
-
-        holder.dragHandle.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                if (dragging) {
-                    if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                        overScrollDecor.detach();
-                        touchHelper.startDrag(holder);
-                        animateElevation(holder, QuickTools.convertDpToPx(context, 8)).start();
-                    }
-                }
-                return false;
-            }
-
-        });
-        holder.optionsWrapper.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(!dragging) {
-                    int handleWidth = powerMenu.getContentViewWidth();
-                    powerMenu.showAsDropDown(v, -handleWidth + holder.optionsWrapper.getWidth(), -holder.optionsHandle.getHeight() - holder.optionsHandle.getHeight());
-                }else{
-                    setDragging(false);
-                }
-            }
-        });
-    }
-
-    private void setHandlesDragging(){
-        for(int i = 0; i < getItemCount(); i++) {
-            ViewHolder holder = (ViewHolder)recyclerView.findViewHolderForAdapterPosition(i);
-            if(holder == null) continue;
-            setHandle(holder, replyItems.get(i).isChecked());
-        }
-    }
-
-    private void setDragging(boolean dragging){
-        this.dragging = dragging;
-        if(dragging)
-            fab.hide();
-        else
-            fab.show();
-
-        setHandlesDragging();
-    }
-
-    public void changeViewHolderElevation(ViewHolder holder, int elevation){
-        animateElevation(holder, elevation).start();
-    }
-
-    public void removeItem(ViewHolder holder, int index){
-        int position = holder.getAdapterPosition() != -1? holder.getAdapterPosition(): index;
-
-        holder.itemView.setAlpha(1f);
-        holder.itemView.animate().alpha(0f).setDuration(250).setListener(new AnimatorListenerAdapter() {
-            @Override
-            public void onAnimationCancel(Animator animation) {
-                super.onAnimationCancel(animation);
-                end();
-            }
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                super.onAnimationEnd(animation);
-                end();
-            }
-            private void end(){
-                MainActivity.replyItems.remove(position);
-                addNewFrag.notifyItemRemoved(holder.title.getText().toString());
-                notifyItemRemoved(position);
-            }
-        }).start();
-
-    }
-
-    class SingleTapDetector extends GestureDetector.SimpleOnGestureListener{
-        @Override
-        public boolean onSingleTapConfirmed(MotionEvent e) {
-            int pos = focusedHolder.getAdapterPosition();
-            itemClickedListener.onItemClick(MainActivity.replyItems.get(pos), pos);
-            return true;
-        }
-    }
-
-    class DoubleTapDetector extends GestureDetector.SimpleOnGestureListener{
-        @Override
-        public boolean onDoubleTap(MotionEvent e) {
-            onLongClick(focusedHolder.getAdapterPosition(), focusedHolder);
-            return true;
-        }
-    }
-
-    ViewHolder focusedHolder;
-    private void setUpTouchListener(int position, ViewHolder holder){
+    private void setUpTouchListener(int position, ViewHolder holder) {
         final GestureDetector tapDetector = new GestureDetector(context, new SingleTapDetector());
         final GestureDetector doubleTapDetector = new GestureDetector(context, new DoubleTapDetector());
         ReplyItem item = MainActivity.replyItems.get(position);
         final Runnable longPressRunnable = new Runnable() {
             @Override
             public void run() {
-                if(dragging)return;
-                if(fingerDown) {
-                    onLongClick(position, holder);
+                if (dragging) return;
+                if (fingerDown) {
+                    //setReplyActive(position, holder);
                     longClicked = true;
                 }
             }
@@ -428,7 +173,7 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
                 }*/
 
 
-                switch (ev.getActionMasked()){
+                switch (ev.getActionMasked()) {
                     case MotionEvent.ACTION_DOWN:
                         pointerX = (int) ev.getX();
                         pointerY = (int) ev.getY();
@@ -443,7 +188,7 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
 
                         curY = pointerY;
 
-                        if(Math.abs(curY - lastY) > 10)fingerDown = false;
+                        if (Math.abs(curY - lastY) > 10) fingerDown = false;
                         break;
                     case MotionEvent.ACTION_UP:
                         handler.removeCallbacks(longPressRunnable);
@@ -451,12 +196,10 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
 
                         float t1 = ev.getEventTime();
                         float t2 = ev.getDownTime();
-                        if(!longClicked &&  t1 - t2 < 100) {
+                        if (!longClicked && t1 - t2 < 100) {
                             if (itemClickedListener != null && holder.itemView.getParent() != null) {
-                                if(!dragging)
-                                    itemClickedListener.onItemClick(item, holder.getAdapterPosition());
-                                else
-                                    setDragging(false);
+                                //itemClickedListener.onItemClick(item, holder.getAdapterPosition());
+                                setReplyActive(position, holder);
                             }
                             return false;
                         }
@@ -470,8 +213,8 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
         });
     }
 
-    private void onLongClick(int position, ViewHolder holder){
-        if(holder.itemView.getParent() == null)return;
+    private void setReplyActive(int position, ViewHolder holder) {
+        if (holder.itemView.getParent() == null) return;
         ReplyItem item = MainActivity.replyItems.get(position);
 
         boolean checked = item.isChecked();
@@ -480,10 +223,10 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
         setEnabled(holder, !checked, true);
 
         Snackbar snackbar;
-        if(!checked)snackbar = mainActivity.startSMSService();
+        if (!checked) snackbar = mainActivity.startSMSService();
         else snackbar = mainActivity.endSMSService();
 
-        if(snackbar != null)
+        if (snackbar != null)
             fab.moveForSnackBar(snackbar);
 
 
@@ -491,20 +234,254 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
             fab.setFabExpandedBackground(!checked? item.getGradientTurned(GradientDrawable.Orientation.BOTTOM_TOP): item.getGradientLighter());*/
 
 
-        longClicked = true;
     }
 
-    private void setEnabled(final ViewHolder holder, boolean enabled, boolean animate){
+    private void setUpOptionsHandle(int position, ViewHolder holder) {
+        if (optionsButtons.size() - 1 < position) {
+            optionsButtons.add(holder.optionsHandle);
+        }
+        if (optionsButtons.get(position) == null) {
+            optionsButtons.set(position, holder.optionsHandle);
+        }
+
+        holder.optionsHandle.setOnExpandListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                closeAllOptionsMenus();
+                holder.title.setEllipsize(TextUtils.TruncateAt.END);
+                holder.title.setWidth(holder.title.getWidth() - holder.optionsHandle.getContainerWidth());
+            }
+        });
+
+        if(holder.optionsHandle.getIconCount() == 0) {
+            holder.optionsHandle.addIcon(R.drawable.baseline_check_black_24, new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    holder.optionsHandle.expand(false);
+                }
+            });
+
+            holder.optionsHandle.addIcon(R.drawable.baseline_create_black_24, new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    int pos = holder.getAdapterPosition();
+                    if (itemClickedListener != null)
+                        itemClickedListener.onItemClick(replyItems.get(pos), pos);
+                }
+            });
+
+            holder.optionsHandle.addIcon(R.drawable.baseline_reorder_black_24, new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View v, MotionEvent event) {
+                    if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                        dragging = true;
+                        overScrollDecor.detach();
+                        touchHelper.startDrag(holder);
+                        animateElevation(holder, QuickTools.convertDpToPx(context, 8)).start();
+                    } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                        dragging = false;
+                        OverScrollDecoratorHelper.setUpOverScroll(recyclerView, OverScrollDecoratorHelper.ORIENTATION_VERTICAL);
+                        animateElevation(holder, QuickTools.convertDpToPx(context, 2)).start();
+                    }
+                    return false;
+                }
+            });
+
+            holder.optionsHandle.addIcon(R.drawable.baseline_delete_black_24, new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    removeItem(holder, position);
+                }
+            });
+        }
+    }
+
+    public void closeAllOptionsMenus() {
+        for (ExpandingOptionsButton optionsButton : optionsButtons) {
+            if (optionsButton != null && optionsButton.isExpanded())
+                optionsButton.expand(false);
+        }
+    }
+
+
+    private void setUpLoadAnim(int position, ViewHolder holder) {
+        LinearLayoutManager lm = (LinearLayoutManager) recyclerView.getLayoutManager();
+        if (lm == null) {
+            holder.itemView.setAlpha(1f);
+            return;
+        }
+
+        lastPosOnScreen = lm.findLastVisibleItemPosition() + 1;
+        int firstItemPos = lm.findFirstCompletelyVisibleItemPosition();
+        int time = 150 + 50 * (position - firstItemPos + 1);
+        //if(time > 800) time = 800;
+        //animateIn(holder, position, time);
+        if (canAnimate) animateIn(holder, position, time);
+        else holder.itemView.setAlpha(1f);
+    }
+
+    private int lastPosition = -1;
+
+    private void animateIn(ViewHolder holder, int position, int time) {
+        // If the bound view wasn't previously displayed on screen, it's animated
+        if (position > lastPosition) {
+            View itemview = holder.itemView;
+            itemview.post(new Runnable() {
+                @Override
+                public void run() {
+                    Animation animation = AnimationUtils.loadAnimation(context, R.anim.slide_in_bottom);
+                    animation.setDuration(time);
+                    animation.setInterpolator(new DecelerateInterpolator());
+                    holder.itemView.startAnimation(animation);
+                    itemview.animate().alpha(1f).setDuration(250).setStartDelay(250 + time / 4).start();
+                    lastPosition = position;
+                }
+            });
+        } else
+            holder.itemView.setAlpha(1f);
+    }
+
+    private String getSomeContacts(ReplyItem item) {
+        ArrayList<Contact> contacts = item.getContacts();
+        if (contacts == null || contacts.isEmpty()) return "No Contacts Selected ";
+
+        StringBuilder stringBuilder = new StringBuilder();
+        char lastChar = contacts.get(0).getShortenedAddress().charAt(0);
+
+        if (contacts.size() == 1)
+            stringBuilder.append(contacts.get(0).getAddress());
+        else
+            stringBuilder.append(contacts.get(0).getShortenedAddress());
+
+        if (contacts.size() == 2) {
+            stringBuilder.append(", and ");
+            stringBuilder.append(contacts.get(1).getShortenedAddress());
+        } else if (contacts.size() == 3) {
+            String fin = ", " + contacts.get(1).getShortenedAddress() + ", " + contacts.get(2).getShortenedAddress();
+            stringBuilder.append(fin);
+            return stringBuilder.toString();
+        }
+
+        if (contacts.size() > 3)
+            stringBuilder.append(", ");
+
+        boolean goBack = false;
+        int refIndex = -1;
+        int size = 1;
+        for (int i = 1; i < contacts.size(); i++) {
+            if (i == -1) break;
+            String currentName = contacts.get(i).getShortenedAddress();
+            if (i == contacts.size() - 1) {
+                if (contacts.size() == 4) {
+                    stringBuilder.append(currentName);
+                    String fin = " and 1 other...";
+                    stringBuilder.append(fin);
+                    break;
+                }
+                if (goBack) {
+                    stringBuilder.append(currentName);
+                    String fin = contacts.size() > 3 ? " and " + (contacts.size() - 3) + " others..." : "";
+                    stringBuilder.append(fin);
+                    break;
+                } else {
+                    i = refIndex - 1;
+                    goBack = true;
+                    continue;
+                }
+            }
+            if (currentName.charAt(0) == lastChar && !goBack) {
+                refIndex = i;
+            } else {
+                if (size == 1) {
+                    stringBuilder.append(currentName);
+                    stringBuilder.append(", ");
+                    lastChar = currentName.charAt(0);
+                    size++;
+                } else if (size == 2) {
+                    stringBuilder.append(currentName);
+                    String fin = ", and " + (contacts.size() - 3) + " others...";
+                    stringBuilder.append(fin);
+                    break;
+                }
+            }
+
+        }
+
+        return stringBuilder.toString();
+    }
+
+    private void setUpColorScheme(ViewHolder holder, ReplyItem item) {
+        String[] gradient = QuickTools.getRandomGradient().split(" ");
+        gradient = new String[]{Integer.toHexString(ContextCompat.getColor(context, R.color.colorPrimaryDark)),
+                Integer.toHexString(ContextCompat.getColor(context, R.color.colorPrimary)), ""};
+        item.setColorScheme(context, gradient);
+        holder.enabledInd.setBackground(item.getGradient());
+    }
+
+
+    public void changeViewHolderElevation(ViewHolder holder, int elevation) {
+        animateElevation(holder, elevation).start();
+    }
+
+    public void removeItem(ViewHolder holder, int index) {
+        int position = holder.getAdapterPosition() != -1 ? holder.getAdapterPosition() : index;
+
+        holder.itemView.setAlpha(1f);
+        holder.itemView.animate().alpha(0f).setDuration(150).setListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationCancel(Animator animation) {
+                super.onAnimationCancel(animation);
+                end();
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                super.onAnimationEnd(animation);
+                end();
+            }
+
+            private void end() {
+                if(MainActivity.replyItems.size() <= position) return;
+
+                MainActivity.replyItems.remove(position);
+                addNewFrag.notifyItemRemoved(holder.title.getText().toString());
+                notifyItemRemoved(position);
+            }
+        }).start();
+
+    }
+
+    class SingleTapDetector extends GestureDetector.SimpleOnGestureListener {
+        @Override
+        public boolean onSingleTapConfirmed(MotionEvent e) {
+            int pos = focusedHolder.getAdapterPosition();
+            itemClickedListener.onItemClick(MainActivity.replyItems.get(pos), pos);
+            return true;
+        }
+    }
+
+    class DoubleTapDetector extends GestureDetector.SimpleOnGestureListener {
+        @Override
+        public boolean onDoubleTap(MotionEvent e) {
+            setReplyActive(focusedHolder.getAdapterPosition(), focusedHolder);
+            return true;
+        }
+    }
+
+    ViewHolder focusedHolder;
+
+
+    private void setEnabled(final ViewHolder holder, boolean enabled, boolean animate) {
         int tint, tintLight;
         int goalElevation;
-        if(enabled){
+        if (enabled) {
             goalElevation = QuickTools.convertDpToPx(context, 4);
-            if(animate){
+            if (animate) {
                 holder.enabledInd.setAlpha(1f);
                 ValueAnimator elevationAnim = animateElevation(holder, goalElevation);
 
 
-                final Animator circularReveal = ViewAnimationUtils.createCircularReveal(holder.enabledInd, pointerX, pointerY,0, holder.itemView.getWidth() * 1.1f);
+                final Animator circularReveal = ViewAnimationUtils.createCircularReveal(holder.enabledInd, pointerX, pointerY, 0, holder.itemView.getWidth() * 1.1f);
                 circularReveal.setDuration(150);
                 circularReveal.setInterpolator(new AccelerateInterpolator());
                 circularReveal.addListener(new AnimatorListenerAdapter() {
@@ -514,6 +491,7 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
                         holder.disabledInd.setVisibility(View.INVISIBLE);
                         super.onAnimationEnd(animation);
                     }
+
                     @Override
                     public void onAnimationCancel(Animator animation) {
                         holder.enabledInd.setVisibility(View.VISIBLE);
@@ -525,7 +503,7 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
 
                 circularReveal.start();
                 elevationAnim.start();
-            }else{
+            } else {
                 holder.enabledInd.clearAnimation();
                 holder.enabledInd.setAlpha(1f);
                 holder.enabledInd.setVisibility(View.VISIBLE);
@@ -533,9 +511,9 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
             }
             tint = ContextCompat.getColor(holder.title.getContext(), R.color.white);
             tintLight = ContextCompat.getColor(holder.title.getContext(), R.color.light_cream);
-        }else{
+        } else {
             goalElevation = QuickTools.convertDpToPx(context, 1);
-            if(animate){
+            if (animate) {
                 holder.enabledInd.clearAnimation();
                 holder.enabledInd.setAnimation(null);
 
@@ -548,7 +526,7 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
 
                 holder.enabledInd.animate().alpha(0f).setDuration(100).start();
                 holder.disabledInd.animate().alpha(1f).setDuration(100).start();
-            }else{
+            } else {
                 holder.enabledInd.setVisibility(View.INVISIBLE);
                 holder.disabledInd.setVisibility(View.VISIBLE);
             }
@@ -559,12 +537,12 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
         holder.title.setTextColor(tint);
         holder.replyText.setTextColor(tint);
         holder.contactsText.setTextColor(tintLight);
-        if(!dragging)
-            holder.optionsHandle.getBackground().setTint(tint);
+        if (!dragging)
+            holder.optionsHandle.setTint(tint);
         holder.dragHandle.getBackground().setTint(tint);
     }
 
-    private ValueAnimator animateElevation(ViewHolder holder, int to){
+    private ValueAnimator animateElevation(ViewHolder holder, int to) {
         ValueAnimator elevationAnim = ValueAnimator.ofInt((int) holder.bg.getElevation(), to);
         elevationAnim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
@@ -576,7 +554,7 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
         return elevationAnim;
     }
 
-    private int genRandomColor(){
+    private int genRandomColor() {
         Random random = new Random();
         red = random.nextInt(maxColor - minColor) + minColor;
         green = random.nextInt(maxColor - minColor) + minColor;
@@ -584,18 +562,9 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
         return new Color().argb(255, red, green, blue);
     }
 
-    public void setOnItemClickedListener(final onItemClickedListener itemClickedListener){
-        this.itemClickedListener = itemClickedListener;
-    }
-
-    @Override
-    public int getItemCount() {
-        return replyItems.size();
-    }
-
-    public void updateReplyItem(ReplyItem replyItem){
-        for(int i = 0; i < replyItems.size(); i++){
-            if(replyItems.get(i).getId().equalsIgnoreCase(replyItem.getId())) {
+    public void updateReplyItem(ReplyItem replyItem) {
+        for (int i = 0; i < replyItems.size(); i++) {
+            if (replyItems.get(i).getId().equalsIgnoreCase(replyItem.getId())) {
                 replyItems.set(i, replyItem);
                 notifyItemChanged(i);
             }
@@ -603,8 +572,79 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
         notifyDataSetChanged();
     }
 
+    public void setOnItemClickedListener(final onItemClickedListener itemClickedListener) {
+        this.itemClickedListener = itemClickedListener;
+    }
+
+
     @Override
-    public void onRowMoved(int fromPosition, int toPosition) {
+    public void onViewAttachedToWindow(@NonNull ViewHolder holder) {
+        super.onViewAttachedToWindow(holder);
+    }
+
+    @Override
+    public void onViewDetachedFromWindow(@NonNull ViewHolder holder) {
+        super.onViewDetachedFromWindow(holder);
+        holder.itemView.clearAnimation();
+    }
+
+    @Override
+    public int getItemCount() {
+        return replyItems.size();
+    }
+
+    public ItemTouchHelper.Callback getTouchCallback(){
+        return new ItemTouchHelper.Callback() {
+            @Override
+            public boolean canDropOver(RecyclerView recyclerView, RecyclerView.ViewHolder current, RecyclerView.ViewHolder target) {
+                return current.getItemViewType() == target.getItemViewType();
+            }
+
+            @Override
+            public int getMovementFlags(@NonNull RecyclerView recyclerView,
+                                        @NonNull RecyclerView.ViewHolder viewHolder) {
+                int dragFlags = ItemTouchHelper.DOWN | ItemTouchHelper.UP;
+                return makeMovementFlags(dragFlags, 0);
+            }
+
+            @Override
+            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder viewHolder1) {
+                onItemMove(viewHolder.getAdapterPosition(), viewHolder1.getAdapterPosition());
+                return true;
+            }
+
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int i) {
+
+            }
+
+            @Override
+            public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView,
+                                    @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY,
+                                    int actionState, boolean isCurrentlyActive) {
+                float topY = viewHolder.itemView.getTop() + dY;
+                float bottomY = topY + viewHolder.itemView.getHeight();
+
+                // Only redraw child if it is inbounds of view
+                if (topY > 0 && bottomY < recyclerView.getHeight()){
+                    super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
+                }
+            }
+
+            @Override
+            public void clearView(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder holder) {
+                super.clearView(recyclerView, holder);
+                dragging = false;
+                OverScrollDecoratorHelper.setUpOverScroll(recyclerView,OverScrollDecoratorHelper.ORIENTATION_VERTICAL);
+                animateElevation((ViewHolder) holder, QuickTools.convertDpToPx(context, 2)).start();
+            }
+        };
+    }
+
+    public void onItemMove(int fromPosition, int toPosition) {
+        if(toPosition == 0){
+
+        }
         if (fromPosition < toPosition) {
             for (int i = fromPosition; i < toPosition; i++) {
                 Collections.swap(replyItems, i, i + 1);
@@ -617,23 +657,11 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
         notifyItemMoved(fromPosition, toPosition);
     }
 
-    @Override
-    public void onRowSelected(RecyclerView.ViewHolder viewHolder) {
-        //((ViewHolder)viewHolder).bg.setBackgroundColor(Color.GRAY);
-
-    }
-
-    @Override
-    public void onRowClear(RecyclerView.ViewHolder viewHolder) {
-        //((ViewHolder)viewHolder).rowView.setBackgroundColor(Color.WHITE);
-
-    }
-
     public class ViewHolder extends RecyclerView.ViewHolder {
         public TextView title;
         public TextView replyText;
         public TextView contactsText;
-        public ImageView optionsHandle;
+        public ExpandingOptionsButton optionsHandle;
         public ImageView dragHandle;
         public View optionsWrapper;
         public FrameLayout enabledInd;
@@ -648,17 +676,16 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
             title = (TextView) itemView.findViewById(R.id.title);
             replyText = (TextView) itemView.findViewById(R.id.reply_text);
             contactsText = (TextView) itemView.findViewById(R.id.reply_contacts_text);
-            optionsHandle = (ImageView) itemView.findViewById(R.id.item_options);
+            optionsHandle = itemView.findViewById(R.id.item_options);
             dragHandle = (ImageView) itemView.findViewById(R.id.item_drag);
             optionsWrapper = itemView.findViewById(R.id.wrapper_item_options);
             enabledInd = (FrameLayout) itemView.findViewById(R.id.enabled_indicator);
             disabledInd = (FrameLayout) itemView.findViewById(R.id.disabled_indicator);
             bg = (CardView) itemView.findViewById(R.id.background);
-
         }
 
-        public void resetY(){
-            if(startY != -1) itemView.setY(startY);
+        public void resetY() {
+            if (startY != -1) itemView.setY(startY);
         }
     }
 
@@ -673,13 +700,13 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
     public class CustomSpinnerAdapter extends MenuBaseAdapter<SpinnerItem> {
         LayoutInflater inflater;
 
-        public CustomSpinnerAdapter(LayoutInflater inflater){
+        public CustomSpinnerAdapter(LayoutInflater inflater) {
             this.inflater = inflater;
         }
 
         @Override
         public View getView(int index, View view, ViewGroup viewGroup) {
-            if(view == null) {
+            if (view == null) {
                 view = inflater.inflate(R.layout.view_spinner_item, viewGroup, false);
             }
 
@@ -692,10 +719,11 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
         }
     }
 
-    private class SpinnerItem{
+    private class SpinnerItem {
         String text;
         Drawable image;
-        public SpinnerItem(String text, Drawable image){
+
+        public SpinnerItem(String text, Drawable image) {
             this.text = text;
             this.image = image;
         }

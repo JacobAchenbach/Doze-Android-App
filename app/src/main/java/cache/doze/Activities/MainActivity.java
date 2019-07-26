@@ -13,16 +13,11 @@ import android.os.Handler;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.telephony.SmsManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
@@ -37,12 +32,13 @@ import java.util.HashMap;
 import cache.doze.Fragments.AddContactsFragment;
 import cache.doze.Fragments.AddNewReplyFragment;
 import cache.doze.Fragments.DozeFragment;
-import cache.doze.Fragments.RepliesFragment;
+import cache.doze.Fragments.HomeFragment;
 import cache.doze.Model.Contact;
 import cache.doze.Model.ReplyItem;
 import cache.doze.MonitorSmsService;
 import cache.doze.R;
 import cache.doze.Tools.PermissionsHelper;
+import cache.doze.Views.DozeSnackbar;
 import cache.doze.Views.DozeToolbar;
 import cache.doze.Views.FluidSearchView;
 import cache.doze.Views.FunFab.FunFab;
@@ -51,7 +47,7 @@ import cache.doze.Views.FunFab.FunFab;
  * Created by Chris on 1/9/2018.
  */
 
-public class MainActivity extends AppCompatActivity{
+public class MainActivity extends AppCompatActivity {
     public static final String PREFS_REPLY_ITEMS = "reply_items";
     public static final int NOTIFICATION_ID = 95;
     public static final String CHANNEL_ID = "notif_channel";
@@ -63,12 +59,12 @@ public class MainActivity extends AppCompatActivity{
     public static boolean active = false;
     public static String preset;
 
-    private SharedPreferences prefs;
     NotificationManager nMN;
     Notification.Builder runningNotification;
 
     public FluidSearchView fluidSearchView;
-    RepliesFragment repliesFragment;
+    private DozeSnackbar dozeSnackbar;
+    HomeFragment homeFragment;
     AddContactsFragment addContactsFragment;
     FunFab fab;
 
@@ -76,6 +72,7 @@ public class MainActivity extends AppCompatActivity{
     DisplayMetrics displayMetrics;
     int maxTimesMessaged = 5;
     boolean welcomeScreen = true;
+    boolean hasPermissions;
 
     /**
      * Timer to prevent accidental spam to recipient
@@ -91,10 +88,15 @@ public class MainActivity extends AppCompatActivity{
 
 
     @Override
-    protected void onCreate(Bundle savedInstanceState){
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if(!permissionsGranted())return;
-        startApp();
+        if (hasPermissions = permissionsGranted())
+            startApp();
+        else {
+            Intent intent = new Intent(MainActivity.this, PermissionsActivity.class);
+            overridePendingTransition(R.anim.slide_in_top, 0);
+            startActivityForResult(intent, 1);
+        }
     }
 
     //Basic Lifecycle Methods
@@ -104,48 +106,55 @@ public class MainActivity extends AppCompatActivity{
         //getPrefs().edit().putString(MainActivity.PREFS_REPLY_ITEMS, "").apply();
 
     }
+
     @Override
-    protected void onResume(){
+    protected void onResume() {
         super.onResume();
-        if(MainActivity.preset != null) MainActivity.preset = prefs.getString("preset", MainActivity.preset);
-        refreshReplyItems();
+        if (MainActivity.preset != null)
+            MainActivity.preset = getPrefs().getString("preset", MainActivity.preset);
+        if(hasPermissions) refreshReplyItems();
 //        if(fluidSearchView != null && FluidSearchView.isDetached)
 //            fluidSearchView.build();
     }
+
     @Override
-    protected void onPause(){
+    protected void onPause() {
         saveReplyItems();
         super.onPause();
 //        if(fluidSearchView != null && !FluidSearchView.isDetached)
 //            fluidSearchView.detach();
-        //MainActivity.preset = ((RepliesFragment)viewPagerAdapter.getFragment(0)).getPresetText();
+        //MainActivity.preset = ((HomeFragment)viewPagerAdapter.getFragment(0)).getPresetText();
     }
+
     @Override
-    protected void onStop(){
+    protected void onStop() {
         super.onStop();
         //preset = presetInput.getText().toString();
     }
+
     @Override
-    protected void onDestroy(){
+    protected void onDestroy() {
         super.onDestroy();
     }
 
     //Other @Override methods
     @Override
-    public void onBackPressed(){
-        for(DozeFragment dozeFragment: DozeFragment.dozeFragments){
-            if(dozeFragment.isShown){
-                if(dozeFragment.onBackPressed())return;
+    public void onBackPressed() {
+        for (DozeFragment dozeFragment : DozeFragment.dozeFragments) {
+            if (dozeFragment.isShown) {
+                if (dozeFragment.onBackPressed()) return;
             }
         }
         super.onBackPressed();
     }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         //getMenuInflater().inflate(R.menu.toolbar, menu);
         //menu.findItem(R.id.action_settings).getIcon().setTint(ContextCompat.getColor(getBaseContext(), R.color.black));
         return true;
     }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
@@ -158,25 +167,21 @@ public class MainActivity extends AppCompatActivity{
         return true;
     }
 
-    private boolean permissionsGranted(){
-        if(!PermissionsHelper.checkReadSMSPermission(getBaseContext()) || !PermissionsHelper.checkReadContactsPermission(getBaseContext())
-                || !PermissionsHelper.checkReceiveSMSPermission(getBaseContext())){
-            Intent intent = new Intent(MainActivity.this, PermissionsActivity.class);
-            startActivityForResult(intent, 1);
-            overridePendingTransition(R.anim.slide_in_top, 0);
+    private boolean permissionsGranted() {
+        if (!PermissionsHelper.checkReadSMSPermission(getBaseContext()) || !PermissionsHelper.checkReadContactsPermission(getBaseContext())
+                || !PermissionsHelper.checkReceiveSMSPermission(getBaseContext())) {
             return false;
         }
         return true;
     }
 
-    private void startApp(){
+    private void startApp() {
         setContentView(R.layout.activity_main);
 
-        prefs = getSharedPreferences(MainActivity.DEFAULT_PREFS, Context.MODE_PRIVATE);
-        MainActivity.preset = prefs.getString("preset", "");
+        MainActivity.preset = getPrefs().getString("preset", "");
 
-        boolean firstTime = prefs.getBoolean("first_time", true);
-        if(firstTime) {
+        boolean firstTime = getPrefs().getBoolean("first_time", true);
+        if (firstTime) {
             welcome();
             welcomeScreen = true;
         }
@@ -184,7 +189,7 @@ public class MainActivity extends AppCompatActivity{
         setupApp();
     }
 
-    private void setupApp(){
+    private void setupApp() {
         displayMetrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
 
@@ -199,16 +204,17 @@ public class MainActivity extends AppCompatActivity{
         replyItems = new ArrayList<>();
         //replyItems.add(new ReplyItem("Work", "Currently out of the office, please leave a message!"));
         fab = findViewById(R.id.fab);
+        dozeSnackbar = findViewById(R.id.doze_snackbar);
 
-        if(repliesFragment == null){
-            repliesFragment = new RepliesFragment();
+        if (homeFragment == null) {
+            homeFragment = new HomeFragment();
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.replies_container, repliesFragment, "Main_Replies").commitAllowingStateLoss();
-            repliesFragment.setFab(fab);
-            repliesFragment.isShown = true;
+                    .add(R.id.replies_container, homeFragment, "Main_Replies").commitAllowingStateLoss();
+            homeFragment.setFab(fab);
+            homeFragment.isShown = true;
         }
 
-        if(addContactsFragment == null){
+        if (addContactsFragment == null) {
             addContactsFragment = new AddContactsFragment();
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.add_contacts_container, addContactsFragment, "Add_Contacts").commitAllowingStateLoss();
@@ -219,27 +225,27 @@ public class MainActivity extends AppCompatActivity{
         initSearchView();
         //initKeyboardListener();
 
-
+        refreshReplyItems();
     }
 
-    public void showContactsFrag(ReplyItem replyItem){
-        repliesFragment.slideOutLeft();
+    public void showContactsFrag(ReplyItem replyItem) {
+        homeFragment.slideOutLeft();
         addContactsFragment.slideInRight();
         addContactsFragment.setReplyItem(replyItem);
     }
 
-    public void showMainRepliesFrag(){
+    public void showMainRepliesFrag() {
         addContactsFragment.slideOutRight();
-        repliesFragment.slideInLeft();
+        homeFragment.slideInLeft();
     }
 
-    public FunFab getFab(){
-        return fab == null? findViewById(R.id.fab): fab;
+    public FunFab getFab() {
+        return fab == null ? findViewById(R.id.fab) : fab;
     }
 
 
-    private void initSearchView(){
-        if(fluidSearchView != null) return;
+    private void initSearchView() {
+        if (fluidSearchView != null) return;
 
         fluidSearchView = new FluidSearchView(toolbar, this);
         //if(FluidSearchView.isDetached) fluidSearchView.build();
@@ -247,30 +253,34 @@ public class MainActivity extends AppCompatActivity{
         //fluidSearchView.setOnQueryTextListener(qqqq);
     }
 
-    public boolean isServiceRunning(){
-        return prefs.getBoolean(SERVICE_RUNNING, false);
+    public boolean isServiceRunning() {
+        return getPrefs().getBoolean(SERVICE_RUNNING, false);
     }
 
-    public ArrayList<Contact> getContactList(){
+    public ArrayList<Contact> getContactList() {
         return contactList;
     }
 
-    public void setContactList(ArrayList<Contact> newContactList){contactList = new ArrayList<>(newContactList);}
+    public void setContactList(ArrayList<Contact> newContactList) {
+        contactList = new ArrayList<>(newContactList);
+    }
 
-    public void setToolbarPositive(String text){
+    public void setToolbarPositive(String text) {
         toolbar.setTitle(text);
         animateToolbarColor(ContextCompat.getColor(getBaseContext(), R.color.colorPrimary), ContextCompat.getColor(getBaseContext(), R.color.thatsGoodGreen));
     }
 
     private int savedToolbarColor;
-    public void setToolbarColor(int from, int to){
+
+    public void setToolbarColor(int from, int to) {
         animateToolbarColor(from, to);
     }
-    public void setToolbarColor(int to){
+
+    public void setToolbarColor(int to) {
         animateToolbarColor(savedToolbarColor, to);
     }
 
-    private void animateToolbarColor(int from, int to){
+    private void animateToolbarColor(int from, int to) {
         savedToolbarColor = to;
         ValueAnimator marginBottomAnimation = ValueAnimator.ofArgb(from, to).setDuration(250);
         marginBottomAnimation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
@@ -285,19 +295,19 @@ public class MainActivity extends AppCompatActivity{
     }
 
 
-
     //Handling received messaged
     SmsManager smsManager = SmsManager.getDefault();
-    public void messageReceived(String number) {
-        for(ReplyItem replyItem: replyItems){
-            if(!replyItem.isChecked())continue;
 
-            if(replyItem.getContacts() == null || replyItem.getContacts().isEmpty()){
+    public void messageReceived(String number) {
+        for (ReplyItem replyItem : replyItems) {
+            if (!replyItem.isChecked()) continue;
+
+            if (replyItem.getContacts() == null || replyItem.getContacts().isEmpty()) {
                 sendText(number, replyItem.getReplyText());
                 continue;
             }
 
-            if(replyItem.hasContact(number)){
+            if (replyItem.hasContact(number)) {
                 sendText(number, replyItem.getReplyText());
             }
         }
@@ -318,7 +328,7 @@ public class MainActivity extends AppCompatActivity{
         */
     }
 
-    private void sendText(String address, String msgBody){
+    private void sendText(String address, String msgBody) {
         messageTimer = new Handler();
         MainActivity.messageTimer.postDelayed(new Runnable() {
             @Override
@@ -332,28 +342,30 @@ public class MainActivity extends AppCompatActivity{
     }
 
     //Make sure we aren't messaging someone too many times
-    private boolean canMessage(String address){
-        if(messagedContacts.containsKey(address)){
+    private boolean canMessage(String address) {
+        if (messagedContacts.containsKey(address)) {
             int timesMessaged = messagedContacts.get(address);
-            if(timesMessaged < maxTimesMessaged){
+            if (timesMessaged < maxTimesMessaged) {
                 messagedContacts.put(address, ++timesMessaged);
                 return true;
-            }else
+            } else
                 return false;
         }
         return true;
     }
-    private boolean isContactSelected(String address){
+
+    private boolean isContactSelected(String address) {
         Contact contact = new Contact("placeholder", "");
-        for(Contact c: contactList){
-            if(c.getAddress().equals(address))contact = c;
+        for (Contact c : contactList) {
+            if (c.getAddress().equals(address)) contact = c;
         }
         return contact.getSelected();
     }
-    public void checkAll(boolean checked){
-        prefs.edit().putBoolean(REPLY_ALL, checked).apply();
 
-        for(Contact c: contactList){
+    public void checkAll(boolean checked) {
+        getPrefs().edit().putBoolean(REPLY_ALL, checked).apply();
+
+        for (Contact c : contactList) {
             c.setSelected(checked);
         }
 
@@ -363,10 +375,16 @@ public class MainActivity extends AppCompatActivity{
     }
 
     public Snackbar startSMSService(){
-        if(checkRunning(1))return null;
+        return startSMSService(true);
+    }
+
+    public Snackbar startSMSService(boolean showSnackBar) {
+        if (checkRunning(1)) return null;
+
+        dozeSnackbar.show("Reply Service Started!");
 
         MainActivity.active = true;
-        prefs.edit().putBoolean(MainActivity.SERVICE_RUNNING, true).apply();
+        getPrefs().edit().putBoolean(MainActivity.SERVICE_RUNNING, true).apply();
 
         Intent myService = new Intent(this, MonitorSmsService.class);
 
@@ -375,38 +393,49 @@ public class MainActivity extends AppCompatActivity{
         } else {
             startService(myService);
         }
-        Snackbar snackbar = Snackbar.make(toolbar.getRootView(), "Reply Service Started!", Snackbar.LENGTH_SHORT);
-        snackbar.show();
-        return snackbar;
+
+        saveReplyItems();
+
+//        Snackbar snackbar = null;
+//        if (showSnackBar) {
+//            snackbar = Snackbar.make(toolbar.getRootView(), "Reply Service Started!", Snackbar.LENGTH_SHORT);
+//            snackbar.show();
+//        }
+        return null;
     }
-    public Snackbar endSMSService(){
-        if(checkRunning(0))return null;
+
+    public Snackbar endSMSService() {
+        if (checkRunning(0)) return null;
+
+        dozeSnackbar.show("Reply Service Dismissed");
 
         MainActivity.active = false;
-        prefs.edit().putBoolean(MainActivity.SERVICE_RUNNING, false).apply();
+        getPrefs().edit().putBoolean(MainActivity.SERVICE_RUNNING, false).apply();
 
         stopService(new Intent(this, MonitorSmsService.class));
 
-        Snackbar snackbar = Snackbar.make(toolbar.getRootView(), "Reply Service Dismissed", Snackbar.LENGTH_SHORT);
-        snackbar.show();
-        return snackbar;
+        saveReplyItems();
+
+//        Snackbar snackbar = Snackbar.make(toolbar.getRootView(), "Reply Service Dismissed", Snackbar.LENGTH_SHORT);
+//        snackbar.show();
+        return null;
     }
 
-    private boolean checkRunning(int leniency){
+    private boolean checkRunning(int leniency) {
         leniency++;
         int count = 0;
-        for(ReplyItem replyItem: replyItems){
-            if(replyItem.isChecked())
+        for (ReplyItem replyItem : replyItems) {
+            if (replyItem.isChecked())
                 count++;
-            if(count >= leniency)
+            if (count >= leniency)
                 return true;
         }
         return false;
     }
 
 
-    public SharedPreferences getPrefs(){
-        return prefs;
+    public SharedPreferences getPrefs() {
+        return getSharedPreferences(MainActivity.DEFAULT_PREFS, Context.MODE_PRIVATE);
     }
 
     //Handle from Permissions Activity
@@ -414,7 +443,7 @@ public class MainActivity extends AppCompatActivity{
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
         if (requestCode == 1) {
-            if(resultCode == Activity.RESULT_OK){
+            if (resultCode == Activity.RESULT_OK) {
                 startApp();
             }
             if (resultCode == Activity.RESULT_CANCELED) {
@@ -429,7 +458,7 @@ public class MainActivity extends AppCompatActivity{
         final TextView welcome = new TextView(getBaseContext());
         welcome.setTextSize(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 14, getResources().getDisplayMetrics()));
         welcome.setText("Sleep Tight");
-        Typeface aye = Typeface.createFromAsset(getAssets(), "fonts/Pecita.otf");
+        Typeface aye = Typeface.createFromAsset(getAssets(), "font/Pecita.otf");
         welcome.setTypeface(aye);
         welcome.setTextColor(getResources().getColor(R.color.colorAccent));
         LayoutParams lp = new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT);
@@ -460,7 +489,7 @@ public class MainActivity extends AppCompatActivity{
 
         */
 
-        prefs.edit().putBoolean("first_time", false).putBoolean(SERVICE_RUNNING, false)
+        getPrefs().edit().putBoolean("first_time", false).putBoolean(SERVICE_RUNNING, false)
                 .putBoolean(REPLY_ALL, true)
                 .putString("preset", "Napping \uD83D\uDE34\nGet back to you soon!")
                 .apply();
@@ -468,14 +497,19 @@ public class MainActivity extends AppCompatActivity{
         MainActivity.preset = "Napping \uD83D\uDE34\nGet back to you soon!";
     }
 
-    public DozeToolbar getToolbar(){
+    public DozeToolbar getToolbar() {
         return toolbar;
     }
+    public DozeSnackbar getSnackbar() {
+        return dozeSnackbar;
+    }
 
-    public void saveReplyItems(){
+    public void saveReplyItems() {
         JSONArray replyItemsJSON = new JSONArray();
-        try{
+        try {
             ArrayList<ReplyItem> replyItems = MainActivity.replyItems;
+            if(replyItems == null) return;
+
             for (int i = 0; i < replyItems.size(); i++) {
                 JSONObject replyJSON = new JSONObject();
                 Gson gson = new Gson();
@@ -483,36 +517,40 @@ public class MainActivity extends AppCompatActivity{
                 replyJSON.put(String.valueOf(i), json);
                 replyItemsJSON.put(replyJSON);
             }
-        }catch(JSONException e) {
+        } catch (JSONException e) {
             e.printStackTrace();
         }
 
         getPrefs().edit().putString(MainActivity.PREFS_REPLY_ITEMS, replyItemsJSON.toString()).apply();
     }
 
-    private void refreshReplyItems(){
+    private void refreshReplyItems() {
         ArrayList<ReplyItem> storedReplyItems = new ArrayList<>();
         String jsonString = getPrefs().getString(MainActivity.PREFS_REPLY_ITEMS, "");
-        try{
+        try {
             JSONArray replyItemsJSON = new JSONArray(jsonString);
-            for(int i = 0; i < replyItemsJSON.length(); i++){
+            for (int i = 0; i < replyItemsJSON.length(); i++) {
                 JSONObject replyJSON = (JSONObject) replyItemsJSON.get(i);
                 Gson gson = new Gson();
                 String json = (String) replyJSON.get(String.valueOf(i));
                 ReplyItem replyItem = gson.fromJson(json, ReplyItem.class);
                 storedReplyItems.add(replyItem);
             }
-        }catch (JSONException e){
+        } catch (JSONException e) {
             e.printStackTrace();
         }
 
-        if(storedReplyItems.isEmpty())return;
+        if (storedReplyItems.isEmpty()) return;
 
         replyItems.clear();
         replyItems.addAll(storedReplyItems);
         AddNewReplyFragment.updateUsedNumbers(replyItems);
-    }
 
+        //Start the service if at least one item is already checked
+        if (checkRunning(1)) {
+            startSMSService(false);
+        }
+    }
 
 
 }
