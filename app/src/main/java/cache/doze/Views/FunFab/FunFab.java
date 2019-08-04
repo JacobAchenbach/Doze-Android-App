@@ -306,7 +306,7 @@ public class FunFab extends CardView {
             @Override
             public void onClick(View view) {
                 if (!viewFlung) expandFab(false, true);
-                //if(fabSubmitListener != null && wasClick)doSubmit = true;
+                if(fabSubmitListener != null && wasClick)doSubmit = true;
             }
         });
     }
@@ -316,7 +316,7 @@ public class FunFab extends CardView {
             @Override
             public void onClick(View view) {
                 if (!viewFlung) expandFab(false, true);
-                //if(fabCancelListener != null && wasClick) fabCancelListener.onCancel();
+                if(fabCancelListener != null && wasClick) fabCancelListener.onCancel();
             }
         });
     }
@@ -968,6 +968,12 @@ public class FunFab extends CardView {
                         lastY = 0;
                         viewFlung = false;
                         //if(dist < openY - moveAmt) bounce();
+
+                        if(wasClick) {
+                            if (view == submitButton) doSubmit = true;
+                            else if (view == cancelButton) doCancel = true;
+                        }
+
                         break;
                 }
                 return false;

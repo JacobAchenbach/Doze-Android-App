@@ -49,7 +49,6 @@ import cache.doze.Tools.QuickTools;
 import cache.doze.Views.ExpandingOptionsButton;
 import cache.doze.Views.FunFab.FunFab;
 import me.everything.android.ui.overscroll.IOverScrollDecor;
-import me.everything.android.ui.overscroll.OverScrollDecoratorHelper;
 
 /**
  * Adapter and ViewHolder Classes
@@ -71,7 +70,7 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
     private FunFab fab;
 
 
-    private onItemClickedListener itemClickedListener;
+    private onItemEditListener itemEditListener;
     private View.OnLongClickListener longClickListener;
 
     private int imageSize = -1;
@@ -135,9 +134,9 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
         //if(imageSize == -1)imageSize = holder.proPic.getLayoutParams().width;
         holder.itemView.setTag(item);
 
-        setUpTouchListener(position, holder);
+        setUpTouchListener(holder.getAdapterPosition(), holder);
         setUpOptionsHandle(holder.getAdapterPosition(), holder);
-        setUpLoadAnim(position, holder);
+        setUpLoadAnim(holder.getAdapterPosition(), holder);
     }
 
     private void setUpTouchListener(int position, ViewHolder holder) {
@@ -166,7 +165,7 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
                 tapDetector.onTouchEvent(ev);
                 doubleTapDetector.onTouchEvent(ev);
                if(tapDetector.onTouchEvent(ev))
-                    itemClickedListener.onItemClick(item, holder.getAdapterPosition());
+                    itemEditListener.onItemEdit(item, holder.getAdapterPosition());
                 if(doubleTapDetector.onTouchEvent(ev)){
                     onLongClick(position, holder);
                     longClicked = true;
@@ -197,8 +196,8 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
                         float t1 = ev.getEventTime();
                         float t2 = ev.getDownTime();
                         if (!longClicked && t1 - t2 < 100) {
-                            if (itemClickedListener != null && holder.itemView.getParent() != null) {
-                                //itemClickedListener.onItemClick(item, holder.getAdapterPosition());
+                            if (itemEditListener != null && holder.itemView.getParent() != null) {
+                                //itemEditListener.onItemEdit(item, holder.getAdapterPosition());
                                 setReplyActive(position, holder);
                             }
                             return false;
@@ -265,8 +264,8 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
                 @Override
                 public void onClick(View v) {
                     int pos = holder.getAdapterPosition();
-                    if (itemClickedListener != null)
-                        itemClickedListener.onItemClick(replyItems.get(pos), pos);
+                    if (itemEditListener != null)
+                        itemEditListener.onItemEdit(replyItems.get(pos), pos);
                 }
             });
 
@@ -455,7 +454,7 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
         @Override
         public boolean onSingleTapConfirmed(MotionEvent e) {
             int pos = focusedHolder.getAdapterPosition();
-            itemClickedListener.onItemClick(MainActivity.replyItems.get(pos), pos);
+            itemEditListener.onItemEdit(MainActivity.replyItems.get(pos), pos);
             return true;
         }
     }
@@ -572,8 +571,8 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
         notifyDataSetChanged();
     }
 
-    public void setOnItemClickedListener(final onItemClickedListener itemClickedListener) {
-        this.itemClickedListener = itemClickedListener;
+    public void setOnItemEditListener(final onItemEditListener itemEditListener) {
+        this.itemEditListener = itemEditListener;
     }
 
 
@@ -689,8 +688,8 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
         }
     }
 
-    public interface onItemClickedListener {
-        void onItemClick(ReplyItem item, int position);
+    public interface onItemEditListener {
+        void onItemEdit(ReplyItem item, int position);
     }
 
     public interface onLongClickListener {

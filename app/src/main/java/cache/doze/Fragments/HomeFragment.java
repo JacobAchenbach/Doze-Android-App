@@ -154,9 +154,9 @@ public class HomeFragment extends DozeFragment {
                 }
             });
 
-            recyclerViewAdapter.setOnItemClickedListener(new ReplyListAdapter.onItemClickedListener() {
+            recyclerViewAdapter.setOnItemEditListener(new ReplyListAdapter.onItemEditListener() {
                 @Override
-                public void onItemClick(ReplyItem item, int position) {
+                public void onItemEdit(ReplyItem item, int position) {
                     if(fab.isAnimating()) return;
 /*                    if (addNewFrag.getState() == AddNewReplyFragment.STATE_ADD_NEW)
                         mainActivity.setToolbarColor(ContextCompat.getColor(context, R.color.colorPrimary), item.getColors()[0]);*/
