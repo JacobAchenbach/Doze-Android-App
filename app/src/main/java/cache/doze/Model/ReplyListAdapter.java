@@ -275,12 +275,12 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
                 public boolean onTouch(View v, MotionEvent event) {
                     if (event.getAction() == MotionEvent.ACTION_DOWN) {
                         dragging = true;
-                        overScrollDecor.detach();
+                        homeFragment.getToolbar().setOverScroll(false);
                         touchHelper.startDrag(holder);
                         animateElevation(holder, QuickTools.convertDpToPx(context, 8)).start();
                     } else if (event.getAction() == MotionEvent.ACTION_UP) {
                         dragging = false;
-                        OverScrollDecoratorHelper.setUpOverScroll(recyclerView, OverScrollDecoratorHelper.ORIENTATION_VERTICAL);
+                        homeFragment.getToolbar().setOverScroll(true);
                         animateElevation(holder, QuickTools.convertDpToPx(context, 2)).start();
                     }
                     return false;
@@ -635,7 +635,7 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
             public void clearView(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder holder) {
                 super.clearView(recyclerView, holder);
                 dragging = false;
-                OverScrollDecoratorHelper.setUpOverScroll(recyclerView,OverScrollDecoratorHelper.ORIENTATION_VERTICAL);
+                homeFragment.getToolbar().setOverScroll(true);
                 animateElevation((ViewHolder) holder, QuickTools.convertDpToPx(context, 2)).start();
             }
         };

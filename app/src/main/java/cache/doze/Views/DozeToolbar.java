@@ -153,8 +153,23 @@ public class DozeToolbar extends Toolbar {
             }
         });
 
-        IOverScrollDecor overScrollDecor = OverScrollDecoratorHelper.setUpOverScroll(recyclerView, OverScrollDecoratorHelper.ORIENTATION_VERTICAL);
-        overScrollDecor.setOverScrollUpdateListener(new IOverScrollUpdateListener() {
+        setOverScroll(true);
+    }
+
+    public void setOverScroll(boolean overScroll){
+        if(overScroll){
+            overScrollDecor = OverScrollDecoratorHelper.setUpOverScroll(recyclerView, OverScrollDecoratorHelper.ORIENTATION_VERTICAL);
+            overScrollDecor.setOverScrollUpdateListener(getOverScrollUpdateListener());
+        }else{
+            if(overScrollDecor != null)
+                overScrollDecor.detach();
+        }
+    }
+
+    IOverScrollDecor overScrollDecor;
+    IOverScrollUpdateListener overScrollUpdateListener;
+    private IOverScrollUpdateListener getOverScrollUpdateListener(){
+        return overScrollUpdateListener != null? overScrollUpdateListener: new IOverScrollUpdateListener() {
             int maxOverScroll = 200;
             @Override
             public void onOverScrollUpdate(IOverScrollDecor decor, int state, float offset) {
@@ -179,7 +194,7 @@ public class DozeToolbar extends Toolbar {
                     // This is synonymous with having (state == STATE_IDLE).
                 }
             }
-        });
+        };
     }
 
 

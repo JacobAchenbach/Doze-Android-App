@@ -20,8 +20,6 @@ import cache.doze.Model.ReplyListAdapter;
 import cache.doze.R;
 import cache.doze.Views.FunFab.FunFab;
 import me.everything.android.ui.overscroll.IOverScrollDecor;
-import me.everything.android.ui.overscroll.IOverScrollUpdateListener;
-import me.everything.android.ui.overscroll.OverScrollDecoratorHelper;
 
 /**
  * Created by Chris on 2/22/2018.
@@ -109,7 +107,7 @@ public class HomeFragment extends DozeFragment {
             float w = screen.x;
             float h = screen.y;
 
-            addNewFrag = (AddNewReplyFragment) fab.init(getActivity().getSupportFragmentManager(), 0.85f, 1);
+            addNewFrag = (AddNewReplyFragment) fab.init(getActivity().getSupportFragmentManager(), 0.80f, 1);
             changeFragProperties(true);
             fab.setFabExpandListener(new FunFab.FabExpandListener() {
                 @Override
@@ -148,6 +146,7 @@ public class HomeFragment extends DozeFragment {
             addNewFrag.setContactsButtonPressedListener(new AddNewReplyFragment.OnContactsButtonPressedListener() {
                 @Override
                 public void onPressed() {
+                    if(!fab.isOpen()) return;
                     fab.setIcon(ContextCompat.getDrawable(context, R.drawable.baseline_more_vert_black_36));
                     fab.expandFab(false, true);
                     showContactsPage = true;
@@ -195,7 +194,7 @@ public class HomeFragment extends DozeFragment {
 
     private void fabClosed() {
         InputMethodManager imm = ((InputMethodManager) mainActivity.getSystemService(Context.INPUT_METHOD_SERVICE));
-        if (imm != null) imm.hideSoftInputFromWindow(addNewFrag.inputPreset.getWindowToken(), 0);
+        if (imm != null) imm.hideSoftInputFromWindow(addNewFrag.inputMessage.getWindowToken(), 0);
         if (showContactsPage) {
             mainActivity.showContactsFrag(addNewFrag.getReplyItem());
             showContactsPage = false;

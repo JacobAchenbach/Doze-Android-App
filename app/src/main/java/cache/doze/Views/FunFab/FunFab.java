@@ -65,11 +65,12 @@ public class FunFab extends CardView {
     private View divider;
 
     private Context context;
-    private Fragment fragment;
+    private FunFabFrag fragment;
     private FragmentManager fragmentManager;
     private FabExpandListener fabExpandListener;
     private FabSubmitListener fabSubmitListener;
     private FabCancelListener fabCancelListener;
+    private KeyboardVisibilityListener keyboardVisibilityListener;
 
     private int funFabRadius;
     private int funFabClosedWH;
@@ -91,6 +92,7 @@ public class FunFab extends CardView {
     private boolean open = false;
     private boolean suspended = false;
     private boolean animating = false;
+    private boolean movingForKeyboard = false;
     private boolean doSubmit = false;
     private boolean doCancel = false;
 
@@ -188,6 +190,82 @@ public class FunFab extends CardView {
         if (fragment == null) {
             fragment = new AddNewReplyFragment();
             fragmentManager.beginTransaction().add(R.id.container, fragment, "Add New").commitAllowingStateLoss();
+            fragment.setKeyboardVisibilityListener(new KeyboardVisibilityListener() {
+                Integer originalMargin = null;
+                boolean movedUp = false;
+                @Override
+                public void onKeyboardVisibility(boolean visible) {
+                    if(!visible) movedUp = false;
+
+                    if(open && !movingForKeyboard && !movedUp){
+                        movedUp = true;
+
+                        //  For touch preventing during the animation
+                        movingForKeyboard = true;
+                        float y = fabView.getY();
+                        if(fabView.getY() > openY){
+                            ViewPropertyAnimator yAnim = fabView.animate().y(openY).setDuration(100);
+                            yAnim.setListener(new AnimatorListenerAdapter() {
+                                @Override
+                                public void onAnimationCancel(Animator animation) {
+                                    super.onAnimationCancel(animation);
+                                    end();
+                                }
+
+                                @Override
+                                public void onAnimationEnd(Animator animation) {
+                                    super.onAnimationEnd(animation);
+                                    end();
+                                }
+                                private void end(){
+                                    yAnim.setListener(null);
+                                    setDist(openY);
+                                    adjustFabForKeyboard(visible);
+                                }
+                            });
+                        }else
+                            adjustFabForKeyboard(visible);
+                    }
+                }
+
+                private void adjustFabForKeyboard(boolean visible){
+                    if(originalMargin == null) originalMargin = fabLP.bottomMargin;
+
+                    fabLP = (RelativeLayout.LayoutParams) fabView.getLayoutParams();
+                    ValueAnimator marginBottomAnimation = ValueAnimator.ofInt(fabLP.bottomMargin, visible? 100: originalMargin).setDuration(250);
+                    marginBottomAnimation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                        @Override
+                        public void onAnimationUpdate(ValueAnimator valueAnimator) {
+                            fabLP.bottomMargin = (Integer) valueAnimator.getAnimatedValue();
+                            fabView.setLayoutParams(fabLP);
+                        }
+                    });
+                    if(visible){
+
+                    }else
+                        marginBottomAnimation.setStartDelay(100);
+
+                    marginBottomAnimation.addListener(new AnimatorListenerAdapter() {
+                        @Override
+                        public void onAnimationCancel(Animator animation) {
+                            super.onAnimationCancel(animation);
+                            end();
+                        }
+                        @Override
+                        public void onAnimationEnd(Animator animation) {
+                            super.onAnimationEnd(animation);
+                            end();
+                        }
+                        private void end(){
+                            marginBottomAnimation.removeAllUpdateListeners();
+                            movingForKeyboard = false;
+                        }
+                    });
+                    marginBottomAnimation.start();
+                }
+
+            });
+
         }
         return fragment;
     }
@@ -245,6 +323,10 @@ public class FunFab extends CardView {
 
     public boolean isAnimating() {
         return animating;
+    }
+
+    public boolean isOpen(){
+        return open;
     }
 
     /**
@@ -772,7 +854,7 @@ public class FunFab extends CardView {
 
             @Override
             public boolean onTouch(View view, MotionEvent ev) {
-                if (ev.getPointerCount() > 1 || !open || animating)
+                if (ev.getPointerCount() > 1 || !open || animating || movingForKeyboard)
                     return false;
 
                 flingDetector.onTouchEvent(ev);
@@ -825,9 +907,10 @@ public class FunFab extends CardView {
                         float newY = openY + moveAmt;
 
                         //Clamping move amount to either bound
-                        if (newY < maxY)
-                            newY = newY;//newY = maxY;
-                        else if (newY > minY && !suspended) {
+                        if (newY < maxY) {
+                            //newY = newY;
+                            newY = maxY;
+                        }else if (newY > minY && !suspended) {
                             if (suspendable)
                                 suspend(true);
                             else if (open && !animating) {
@@ -843,14 +926,14 @@ public class FunFab extends CardView {
                             dist -= change;
                         }
 
-                        if (newY < openY && newY > maxY) {
-                            float dest = openY - maxY; // Cus maxY < openY
-                            float cur = newY - maxY;
-                            float percentage = 1 - (cur / dest);//1 - (maxY / newY);
-                            float newPerc = SMOOTH_FACTOR - (SMOOTH_FACTOR * percentage);
-                            moveAmt = -dist * newPerc;
-                            newY = openY + moveAmt;
-                        }
+//                        if (newY < openY && newY > maxY) {
+//                            float dest = openY - maxY; // Cus maxY < openY
+//                            float cur = newY - maxY;
+//                            float percentage = 1 - (cur / dest);//1 - (maxY / newY);
+//                            float newPerc = SMOOTH_FACTOR - (SMOOTH_FACTOR * percentage);
+//                            moveAmt = -dist * newPerc;
+//                            newY = openY + moveAmt;
+//                        }
 
 
                         if (open && !animating)
@@ -879,7 +962,6 @@ public class FunFab extends CardView {
                             });
                             toTopAnimation.setDuration(100).start();
                             dist = 0;
-                            animating = true;
                         } else if (!viewFlung && !scrolledUp && (openY + moveAmt > screenHeight - openH * 3 / 5f)) {
                             //expand(false);
                         }
@@ -1108,6 +1190,10 @@ public class FunFab extends CardView {
 
     public interface FabCancelListener {
         void onCancel();
+    }
+
+    public interface KeyboardVisibilityListener {
+        void onKeyboardVisibility(boolean visible);
     }
 
     public void setFabExpandListener(FabExpandListener fabExpandListener) {

@@ -56,7 +56,7 @@ public class ItemMoveCallback extends ItemTouchHelper.Callback {
     public void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState) {
         ReplyListAdapter replyListAdapter = (ReplyListAdapter)mAdapter;
         if(actionState == ItemTouchHelper.ACTION_STATE_IDLE){
-            replyListAdapter.fixRecyclerView();
+            //replyListAdapter.fixRecyclerView();
             if(lastViewHolder != null)
                 replyListAdapter.changeViewHolderElevation((ReplyListAdapter.ViewHolder)lastViewHolder, QuickTools.convertDpToPx(context, 2) + 5);
         }
