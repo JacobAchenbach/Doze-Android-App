@@ -33,6 +33,7 @@ dependencies {
     implementation 'com.android.support:cardview-v7:28.0.0'
     implementation 'me.everything:overscroll-decor-android:1.0.4'
     implementation 'com.timehop.stickyheadersrecyclerview:library:0.4.3'
+    implementation 'com.l4digital.fastscroll:fastscroll:2.0.0-beta2'
     implementation 'com.google.code.gson:gson:2.7'
     implementation 'com.android.support:support-dynamic-animation:28.0.0'
 }

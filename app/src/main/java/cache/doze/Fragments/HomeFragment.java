@@ -2,16 +2,19 @@ package cache.doze.Fragments;
 
 import android.content.Context;
 import android.graphics.Point;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.util.Log;
 import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.view.inputmethod.InputMethodManager;
 
 import cache.doze.Activities.MainActivity;
@@ -62,6 +65,7 @@ public class HomeFragment extends DozeFragment {
         replyRecyclerView = root.findViewById(R.id.recycler_view);
 
         setUpRecyclerView();
+        setUpKeyboardListener();
         if (addNewFrag == null) setUpFab();
         super.onCreateView(root);
         return root;
@@ -147,6 +151,7 @@ public class HomeFragment extends DozeFragment {
                 @Override
                 public void onPressed() {
                     if(!fab.isOpen()) return;
+                    getToolbar().scrollToTop();
                     fab.setIcon(ContextCompat.getDrawable(context, R.drawable.baseline_more_vert_black_36));
                     fab.expandFab(false, true);
                     showContactsPage = true;
@@ -210,12 +215,48 @@ public class HomeFragment extends DozeFragment {
         //recyclerViewAdapter.updateReplyItem(replyItem);
         int position = 0;
         for (int i = 0; i < MainActivity.replyItems.size(); i++) {
-            if (MainActivity.replyItems.get(i).getId().equalsIgnoreCase(replyItem.getId())) {
+            if (MainActivity.replyItems.get(i).getUniqueId().equalsIgnoreCase(replyItem.getUniqueId())) {
                 position = i;
                 break;
             }
         }
         recyclerViewAdapter.notifyItemChanged(position);
+    }
+
+    boolean isKeyboardShowing;
+    private void setUpKeyboardListener(){
+        // ContentView is the root view of the layout of this activity/fragment
+        root.getViewTreeObserver().addOnGlobalLayoutListener(
+                new ViewTreeObserver.OnGlobalLayoutListener() {
+                    @Override
+                    public void onGlobalLayout() {
+
+                        Rect r = new Rect();
+                        root.getWindowVisibleDisplayFrame(r);
+                        int screenHeight = root.getRootView().getHeight();
+
+                        // r.bottom is the position above soft keypad or device button.
+                        // if keypad is shown, the r.bottom is smaller than that before.
+                        int keypadHeight = screenHeight - r.bottom;
+
+                        Log.d("KeyboardHeight", "keypadHeight = " + keypadHeight);
+
+                        if (keypadHeight > screenHeight * 0.15) { // 0.15 ratio is perhaps enough to determine keypad height.
+                            // keyboard is opened
+                            if (!isKeyboardShowing) {
+                                isKeyboardShowing = true;
+                                //onKeyboardVisibilityChanged(true);
+                            }
+                        }
+                        else {
+                            // keyboard is closed
+                            if (isKeyboardShowing) {
+                                isKeyboardShowing = false;
+                                //onKeyboardVisibilityChanged(false);
+                            }
+                        }
+                    }
+                });
     }
 
     @Override
@@ -226,6 +267,8 @@ public class HomeFragment extends DozeFragment {
     @Override
     public void onResume() {
         super.onResume();
+
+        getToolbar().restoreSavedPosition();
 
         if (fab != null) {
             fab.show();

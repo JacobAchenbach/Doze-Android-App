@@ -29,7 +29,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import cache.doze.Fragments.AddContactsFragment;
+import cache.doze.Fragments.ContactsFragment;
 import cache.doze.Fragments.AddNewReplyFragment;
 import cache.doze.Fragments.DozeFragment;
 import cache.doze.Fragments.HomeFragment;
@@ -65,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
     public FluidSearchView fluidSearchView;
     private DozeSnackbar dozeSnackbar;
     HomeFragment homeFragment;
-    AddContactsFragment addContactsFragment;
+    ContactsFragment contactsFragment;
     FunFab fab;
 
 
@@ -214,12 +214,12 @@ public class MainActivity extends AppCompatActivity {
             homeFragment.isShown = true;
         }
 
-        if (addContactsFragment == null) {
-            addContactsFragment = new AddContactsFragment();
+        if (contactsFragment == null) {
+            contactsFragment = new ContactsFragment();
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.add_contacts_container, addContactsFragment, "Add_Contacts").commitAllowingStateLoss();
-            addContactsFragment.isShown = false;
-            addContactsFragment.setFab(fab);
+                    .add(R.id.add_contacts_container, contactsFragment, "Add_Contacts").commitAllowingStateLoss();
+            contactsFragment.isShown = false;
+            contactsFragment.setFab(fab);
         }
 
         initSearchView();
@@ -230,12 +230,12 @@ public class MainActivity extends AppCompatActivity {
 
     public void showContactsFrag(ReplyItem replyItem) {
         homeFragment.slideOutLeft();
-        addContactsFragment.slideInRight();
-        addContactsFragment.setReplyItem(replyItem);
+        contactsFragment.slideInRight();
+        contactsFragment.setReplyItem(replyItem);
     }
 
     public void showMainRepliesFrag() {
-        addContactsFragment.slideOutRight();
+        contactsFragment.slideOutRight();
         homeFragment.slideInLeft();
     }
 
@@ -369,8 +369,8 @@ public class MainActivity extends AppCompatActivity {
             c.setSelected(checked);
         }
 
-//        AddContactsFragment page2 =
-//                (AddContactsFragment) viewPagerAdapter.getFragment(1);
+//        ContactsFragment page2 =
+//                (ContactsFragment) viewPagerAdapter.getFragment(1);
 //        page2.updateCheckStates();
     }
 

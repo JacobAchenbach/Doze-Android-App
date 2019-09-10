@@ -4,6 +4,7 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.CardView;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.AttributeSet;
@@ -46,6 +47,8 @@ public class DozeToolbar extends Toolbar {
 
     private float maxOverScrollTextSize;
     private float maxOverScrollIconSize;
+
+    private int savedPosition;
 
 
     public DozeToolbar(Context context) {
@@ -154,6 +157,15 @@ public class DozeToolbar extends Toolbar {
         });
 
         setOverScroll(true);
+    }
+
+    public void scrollToTop(){
+        savedPosition = recyclerView.computeVerticalScrollOffset();
+        recyclerView.smoothScrollToPosition(0);
+    }
+
+    public void restoreSavedPosition(){
+        recyclerView.smoothScrollBy(0, savedPosition);
     }
 
     public void setOverScroll(boolean overScroll){

@@ -244,7 +244,7 @@ public class ExpandingOptionsButton extends RelativeLayout {
 
         public void setTint(int color){
             icon.getBackground().setTint(color);
-            optionIconsContainer.setBackgroundTintList(new ColorStateList(new int[][]{}, new int[]{ContextCompat.getColor(context, R.color.black)}));
+            //optionIconsContainer.setBackgroundTintList(new ColorStateList(new int[][]{}, new int[]{ContextCompat.getColor(context, R.color.black)}));
         }
 
     }

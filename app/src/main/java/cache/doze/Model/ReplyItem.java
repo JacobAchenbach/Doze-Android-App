@@ -3,17 +3,16 @@ package cache.doze.Model;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
-import android.os.Parcelable;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 
 import cache.doze.R;
 import cache.doze.Tools.QuickTools;
+import cache.doze.Views.ExpandingOptionsButton;
 
 /**
  * Created by Chris on 10/4/2018.
@@ -24,17 +23,30 @@ public class ReplyItem implements Serializable{
     private String replyText;
     private boolean checked;
     private ArrayList<Contact> contacts;
-    private String id;
+    private String uniqueId;
     private int[] drawableColors;
     private transient GradientDrawable bgDrawable;
     private transient GradientDrawable borderDrawable;
+    private transient ExpandingOptionsButton optionsButton;
 
     public ReplyItem(String title, String reply) {
         this.title = title;
         this.replyText = reply;
         checked = false;
 
-        id = (System.currentTimeMillis() + new Random().nextInt(Math.abs((int) System.currentTimeMillis()))) + reply.length() + "";
+        bgDrawable = null;
+        borderDrawable = null;
+        optionsButton = null;
+
+        uniqueId = (System.currentTimeMillis() + new Random().nextInt(Math.abs((int) System.currentTimeMillis()))) + reply.length() + "";
+    }
+
+    public void setOptionsButton(ExpandingOptionsButton optionsButton){
+        this.optionsButton = optionsButton;
+    }
+
+    public ExpandingOptionsButton getOptionsButton() {
+        return optionsButton;
     }
 
     public void setColorScheme(Context context, String[] colors){
@@ -103,7 +115,7 @@ public class ReplyItem implements Serializable{
         this.replyText = replyItem.replyText;
         this.checked = replyItem.checked;
 
-        this.id = replyItem.id;
+        this.uniqueId = replyItem.uniqueId;
     }
 
     public void setTitle(String title) {
@@ -131,8 +143,8 @@ public class ReplyItem implements Serializable{
         return checked;
     }
 
-    public String getId() {
-        return id;
+    public String getUniqueId() {
+        return uniqueId;
     }
 
     public boolean hasContact(String number){

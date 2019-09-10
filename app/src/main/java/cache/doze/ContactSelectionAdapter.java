@@ -18,6 +18,7 @@ import android.widget.RelativeLayout;
 import android.widget.SectionIndexer;
 import android.widget.TextView;
 
+import com.l4digital.fastscroll.FastScroller;
 import com.timehop.stickyheadersrecyclerview.StickyRecyclerHeadersAdapter;
 
 import java.util.ArrayList;
@@ -31,7 +32,7 @@ import cache.doze.Tools.QuickTools;
  * Created by Chris on 2/15/2018.
  */
 
-public class ContactSelectionAdapter extends RecyclerView.Adapter<ContactSelectionAdapter.ViewHolder> implements SectionIndexer, StickyRecyclerHeadersAdapter {
+public class ContactSelectionAdapter extends RecyclerView.Adapter<ContactSelectionAdapter.ViewHolder> implements SectionIndexer, FastScroller.SectionIndexer, StickyRecyclerHeadersAdapter {
 
     private List<Contact> allContacts;
     private List<Contact> contacts;
@@ -47,6 +48,7 @@ public class ContactSelectionAdapter extends RecyclerView.Adapter<ContactSelecti
     private int maxColor = 220;
     private int minColor = 170;
     private int randomBound = maxColor - (maxColor - minColor) / 2;
+
 
     public interface onContactCheckedListener {
         void onContactChecked(View view, int position);
@@ -227,6 +229,15 @@ public class ContactSelectionAdapter extends RecyclerView.Adapter<ContactSelecti
             return charr;
         }
     }
+
+    @Override
+    public CharSequence getSectionText(int position) {
+        if (position == -1) {
+            return "";
+        } else {
+            char c = contacts.get(position).getAddress().charAt(0);
+            return c + "";
+        }    }
 
     @Override
     public HeaderViewHolder onCreateHeaderViewHolder(ViewGroup parent) {

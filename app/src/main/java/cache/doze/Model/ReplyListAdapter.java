@@ -135,7 +135,7 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
         holder.itemView.setTag(item);
 
         setUpTouchListener(holder.getAdapterPosition(), holder);
-        setUpOptionsHandle(holder.getAdapterPosition(), holder);
+        setUpOptionsHandle(holder.getAdapterPosition(), holder, item);
         setUpLoadAnim(holder.getAdapterPosition(), holder);
     }
 
@@ -235,13 +235,18 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
 
     }
 
-    private void setUpOptionsHandle(int position, ViewHolder holder) {
-        if (optionsButtons.size() - 1 < position) {
-            optionsButtons.add(holder.optionsHandle);
+    private void setUpOptionsHandle(int position, ViewHolder holder, ReplyItem item) {
+        if(item.getOptionsButton() != null){
+            item.getOptionsButton().expand(false);
+            return;
         }
-        if (optionsButtons.get(position) == null) {
-            optionsButtons.set(position, holder.optionsHandle);
-        }
+
+//        if (optionsButtons.size() - 1 < position) {
+//            optionsButtons.add(holder.optionsHandle);
+//        }
+//        if (optionsButtons.get(position) == null) {
+//            optionsButtons.set(position, holder.optionsHandle);
+//        }
 
         holder.optionsHandle.setOnExpandListener(new View.OnClickListener() {
             @Override
@@ -293,13 +298,22 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
                 }
             });
         }
+
+        item.setOptionsButton(holder.optionsHandle);
     }
 
     public void closeAllOptionsMenus() {
-        for (ExpandingOptionsButton optionsButton : optionsButtons) {
+        ExpandingOptionsButton optionsButton;
+
+        for (ReplyItem item : replyItems) {
+            optionsButton = item.getOptionsButton();
             if (optionsButton != null && optionsButton.isExpanded())
                 optionsButton.expand(false);
         }
+//        for (ExpandingOptionsButton optionsButton : optionsButtons) {
+//            if (optionsButton != null && optionsButton.isExpanded())
+//                optionsButton.expand(false);
+//        }
     }
 
 
@@ -424,6 +438,8 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
 
     public void removeItem(ViewHolder holder, int index) {
         int position = holder.getAdapterPosition() != -1 ? holder.getAdapterPosition() : index;
+        notifyItemRemoved(position);
+        if(true) return;
 
         holder.itemView.setAlpha(1f);
         holder.itemView.animate().alpha(0f).setDuration(150).setListener(new AnimatorListenerAdapter() {
@@ -563,7 +579,7 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
 
     public void updateReplyItem(ReplyItem replyItem) {
         for (int i = 0; i < replyItems.size(); i++) {
-            if (replyItems.get(i).getId().equalsIgnoreCase(replyItem.getId())) {
+            if (replyItems.get(i).getUniqueId().equalsIgnoreCase(replyItem.getUniqueId())) {
                 replyItems.set(i, replyItem);
                 notifyItemChanged(i);
             }

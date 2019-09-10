@@ -1,7 +1,5 @@
 package cache.doze.Fragments;
 
-import android.animation.Animator;
-import android.animation.ValueAnimator;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -9,7 +7,6 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Parcelable;
 import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
@@ -21,22 +18,19 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewPropertyAnimator;
 import android.view.ViewTreeObserver;
-import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.CheckBox;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.l4digital.fastscroll.FastScrollRecyclerView;
+import com.l4digital.fastscroll.FastScroller;
 import com.timehop.stickyheadersrecyclerview.StickyRecyclerHeadersDecoration;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -48,20 +42,19 @@ import cache.doze.Model.Contact;
 import cache.doze.ContactSelectionAdapter;
 import cache.doze.Model.ReplyItem;
 import cache.doze.R;
-import cache.doze.Tools.QuickTools;
 import cache.doze.Views.FunFab.FunFab;
 
 /**
  * Created by Chris on 2/22/2018.
  */
 
-public class AddContactsFragment extends DozeFragment implements SearchView.OnQueryTextListener{
+public class ContactsFragment extends DozeFragment implements SearchView.OnQueryTextListener{
 
     private MainActivity mainActivity;
     private ReplyItem replyItem;
 
     private FunFab fab;
-    private RecyclerView recyclerView;
+    private FastScrollRecyclerView recyclerView;
     private StickyRecyclerHeadersDecoration recyclerDecorator;
     private SwipeRefreshLayout swipeRefresh;
     private ProgressBar progressBar;
@@ -69,16 +62,17 @@ public class AddContactsFragment extends DozeFragment implements SearchView.OnQu
     private ContactSelectionAdapter adapter;
 
     boolean loadingContacts;
+    private boolean canSwipeRefresh = true;
 
     View rootView;
 
-    public static AddContactsFragment newInstance(int page, String title) {
-        AddContactsFragment addContactsFragment = new AddContactsFragment();
+    public static ContactsFragment newInstance(int page, String title) {
+        ContactsFragment contactsFragment = new ContactsFragment();
         Bundle args = new Bundle();
         args.putInt("someInt", page);
         args.putString("someTitle", title);
-        addContactsFragment.setArguments(args);
-        return addContactsFragment;
+        contactsFragment.setArguments(args);
+        return contactsFragment;
     }
 
     public void setReplyItem(ReplyItem replyItem) {
@@ -112,7 +106,7 @@ public class AddContactsFragment extends DozeFragment implements SearchView.OnQu
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        rootView = inflater.inflate(R.layout.fragment_add_contacts, container, false);
+        rootView = inflater.inflate(R.layout.fragment_contacts, container, false);
         rootView.setVisibility(View.GONE);
 
         mainActivity = (MainActivity) getActivity();
@@ -147,7 +141,7 @@ public class AddContactsFragment extends DozeFragment implements SearchView.OnQu
         }
         if(isShown)
             fab.hide();
-        //if(recyclerView != null && adapter != null && adapter.getItemCount() > AddContactsFragment.recyclerViewScrollPos) recyclerView.scrollToPosition(AddContactsFragment.recyclerViewScrollPos);
+        //if(recyclerView != null && adapter != null && adapter.getItemCount() > ContactsFragment.recyclerViewScrollPos) recyclerView.scrollToPosition(ContactsFragment.recyclerViewScrollPos);
     }
 
     @Override
@@ -171,7 +165,7 @@ public class AddContactsFragment extends DozeFragment implements SearchView.OnQu
             @Override
             public void onRefresh() {
                 if(mainActivity.fluidSearchView.isOpened())mainActivity.fluidSearchView.onClose();
-                //loading(true);
+                loading(true);
                 populateContactAddresses(false);
             }
         });
@@ -179,7 +173,33 @@ public class AddContactsFragment extends DozeFragment implements SearchView.OnQu
 
     private void initRecyclerView() {
         recyclerView = rootView.findViewById(R.id.recycler_view);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()) {
+            @Override
+            public boolean canScrollVertically() {
+                return !loadingContacts;
+            }
+        });
+
+        recyclerView.setFastScrollListener(new FastScroller.FastScrollListener() {
+            @Override
+            public void onFastScrollStart(FastScroller fastScroller) {
+                swipeRefresh.setEnabled(false);
+            }
+
+            @Override
+            public void onFastScrollStop(FastScroller fastScroller) {
+                swipeRefresh.setEnabled(true);
+            }
+        });
+
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                int offset = recyclerView.computeVerticalScrollOffset();
+                //swipeRefresh.setEnabled(offset <= 5);
+                super.onScrolled(recyclerView, dx, dy);
+            }
+        });
 
 /*        recyclerView.setIndexbarWidth(70f);
         recyclerView.setIndexBarCornerRadius(0);
@@ -191,16 +211,18 @@ public class AddContactsFragment extends DozeFragment implements SearchView.OnQu
 
     private void loading(boolean isLoading){
         loadingContacts = isLoading;
-        animateVisibility(swipeRefresh, !isLoading);
+        recyclerView.animate().alpha(isLoading? 0.3f: 1.0f);
+        recyclerView.setFastScrollEnabled(!isLoading);
+        //animateVisibility(swipeRefresh, !isLoading);
         if(!isLoading) {
-            animateVisibility(progressBar, isLoading);
-            animateVisibility(notifText, isLoading);
+            animateVisibility(progressBar, false);
+            //animateVisibility(notifText, isLoading);
         }
 
 //        swipeRefresh.setVisibility(isLoading? View.INVISIBLE: View.VISIBLE);
 //        progressBar.setVisibility(isLoading? View.VISIBLE: View.INVISIBLE);
 //        notifText.setVisibility(isLoading? View.VISIBLE: View.INVISIBLE);
-        notifText.setText("Getting your contacts! \uD83D\uDE34");
+        //notifText.setText("Getting your contacts! \uD83D\uDE34");
         if(loadingContacts){
             animateViewsUp();
         }
@@ -403,6 +425,7 @@ public class AddContactsFragment extends DozeFragment implements SearchView.OnQu
 
             if(swipeRefresh != null)swipeRefresh.setRefreshing(false);
             loading(false);
+            recyclerView.animate().alpha(1);
         }
     }
 
