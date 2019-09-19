@@ -47,6 +47,7 @@ import java.util.ArrayList;
 import cache.doze.Fragments.AddNewReplyFragment;
 import cache.doze.R;
 import cache.doze.Tools.QuickTools;
+import cache.doze.Tools.ScreenUtil;
 
 /**
  * Created by Chris on 10/18/2018.
@@ -181,6 +182,7 @@ public class FunFab extends CardView {
                 setupSubmitListener();
                 setupCloseListener();
                 setDraggable();
+                setUpKeyboardListener();
 
             }
         });
@@ -190,81 +192,6 @@ public class FunFab extends CardView {
         if (fragment == null) {
             fragment = new AddNewReplyFragment();
             fragmentManager.beginTransaction().add(R.id.container, fragment, "Add New").commitAllowingStateLoss();
-            fragment.setKeyboardVisibilityListener(new KeyboardVisibilityListener() {
-                Integer originalMargin = null;
-                boolean movedUp = false;
-                @Override
-                public void onKeyboardVisibility(boolean visible) {
-                    if(!visible) movedUp = false;
-
-                    if(open && !movingForKeyboard && !movedUp){
-                        movedUp = true;
-
-                        //  For touch preventing during the animation
-                        movingForKeyboard = true;
-                        float y = fabView.getY();
-                        if(fabView.getY() > openY){
-                            ViewPropertyAnimator yAnim = fabView.animate().y(openY).setDuration(100);
-                            yAnim.setListener(new AnimatorListenerAdapter() {
-                                @Override
-                                public void onAnimationCancel(Animator animation) {
-                                    super.onAnimationCancel(animation);
-                                    end();
-                                }
-
-                                @Override
-                                public void onAnimationEnd(Animator animation) {
-                                    super.onAnimationEnd(animation);
-                                    end();
-                                }
-                                private void end(){
-                                    yAnim.setListener(null);
-                                    setDist(openY);
-                                    adjustFabForKeyboard(visible);
-                                }
-                            });
-                        }else
-                            adjustFabForKeyboard(visible);
-                    }
-                }
-
-                private void adjustFabForKeyboard(boolean visible){
-                    if(originalMargin == null) originalMargin = fabLP.bottomMargin;
-
-                    fabLP = (RelativeLayout.LayoutParams) fabView.getLayoutParams();
-                    ValueAnimator marginBottomAnimation = ValueAnimator.ofInt(fabLP.bottomMargin, visible? 100: originalMargin).setDuration(250);
-                    marginBottomAnimation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-                        @Override
-                        public void onAnimationUpdate(ValueAnimator valueAnimator) {
-                            fabLP.bottomMargin = (Integer) valueAnimator.getAnimatedValue();
-                            fabView.setLayoutParams(fabLP);
-                        }
-                    });
-                    if(visible){
-
-                    }else
-                        marginBottomAnimation.setStartDelay(100);
-
-                    marginBottomAnimation.addListener(new AnimatorListenerAdapter() {
-                        @Override
-                        public void onAnimationCancel(Animator animation) {
-                            super.onAnimationCancel(animation);
-                            end();
-                        }
-                        @Override
-                        public void onAnimationEnd(Animator animation) {
-                            super.onAnimationEnd(animation);
-                            end();
-                        }
-                        private void end(){
-                            marginBottomAnimation.removeAllUpdateListeners();
-                            movingForKeyboard = false;
-                        }
-                    });
-                    marginBottomAnimation.start();
-                }
-
-            });
 
         }
         return fragment;
@@ -305,8 +232,8 @@ public class FunFab extends CardView {
         submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                //if(fabSubmitListener != null && wasClick)doSubmit = true;
                 if (!viewFlung) expandFab(false, true);
-                if(fabSubmitListener != null && wasClick)doSubmit = true;
             }
         });
     }
@@ -315,9 +242,89 @@ public class FunFab extends CardView {
         cancelButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (!viewFlung) expandFab(false, true);
                 if(fabCancelListener != null && wasClick) fabCancelListener.onCancel();
+                if (!viewFlung) expandFab(false, true);
             }
+        });
+    }
+
+    private void setUpKeyboardListener(){
+        ScreenUtil.addKeyboardVisibilityChangedListener(new ScreenUtil.OnKeyboardVisibilityChangedListener() {
+            Integer originalMargin = null;
+            boolean movedUp = false;
+            @Override
+            public void onKeyboardVisibilityChanged(boolean isOpen) {
+
+
+                if(open && !movingForKeyboard){
+                    movedUp = true;
+
+                    //  For touch preventing during the animation
+                    movingForKeyboard = true;
+                    float y = fabView.getY();
+                    if(fabView.getY() > openY){
+                        ViewPropertyAnimator yAnim = fabView.animate().y(openY).setDuration(100);
+                        yAnim.setListener(new AnimatorListenerAdapter() {
+                            @Override
+                            public void onAnimationCancel(Animator animation) {
+                                super.onAnimationCancel(animation);
+                                end();
+                            }
+
+                            @Override
+                            public void onAnimationEnd(Animator animation) {
+                                super.onAnimationEnd(animation);
+                                end();
+                            }
+                            private void end(){
+                                yAnim.setListener(null);
+                                setDist(openY);
+                                adjustFabForKeyboard(isOpen);
+                            }
+                        });
+                    }else
+                        adjustFabForKeyboard(isOpen);
+                }
+
+                if(!isOpen) movedUp = false;
+            }
+
+            private void adjustFabForKeyboard(boolean isOpen){
+                if(originalMargin == null) originalMargin = fabLP.bottomMargin;
+
+                fabLP = (RelativeLayout.LayoutParams) fabView.getLayoutParams();
+                ValueAnimator marginBottomAnimation = ValueAnimator.ofInt(fabLP.bottomMargin, isOpen? 100: originalMargin).setDuration(250);
+                marginBottomAnimation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                    @Override
+                    public void onAnimationUpdate(ValueAnimator valueAnimator) {
+                        fabLP.bottomMargin = (Integer) valueAnimator.getAnimatedValue();
+                        fabView.setLayoutParams(fabLP);
+                    }
+                });
+                if(isOpen){
+
+                }else
+                    marginBottomAnimation.setStartDelay(100);
+
+                marginBottomAnimation.addListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationCancel(Animator animation) {
+                        super.onAnimationCancel(animation);
+                        end();
+                    }
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        super.onAnimationEnd(animation);
+                        end();
+                    }
+                    private void end(){
+                        marginBottomAnimation.removeAllUpdateListeners();
+                        movingForKeyboard = false;
+                    }
+                });
+                marginBottomAnimation.start();
+            }
+
         });
     }
 

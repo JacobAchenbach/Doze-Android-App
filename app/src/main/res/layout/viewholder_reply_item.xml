@@ -65,9 +65,7 @@
             android:id="@+id/item_options"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true">
-
-        </cache.doze.Views.ExpandingOptionsButton>
+            android:layout_alignParentEnd="true"/>
 
 
         <ImageView

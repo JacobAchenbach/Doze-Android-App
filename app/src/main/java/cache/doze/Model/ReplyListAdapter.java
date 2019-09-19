@@ -7,6 +7,7 @@ package cache.doze.Model;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -60,11 +61,10 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
     private RecyclerView recyclerView;
 
     private List<ReplyItem> replyItems;
-    private List<ExpandingOptionsButton> optionsButtons;
+
 
     private MainActivity mainActivity;
     private HomeFragment homeFragment;
-    private AddNewReplyFragment addNewFrag;
     private ItemTouchHelper touchHelper;
     private IOverScrollDecor overScrollDecor;
     private FunFab fab;
@@ -72,6 +72,7 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
 
     private onItemEditListener itemEditListener;
     private View.OnLongClickListener longClickListener;
+    private ArrayList<OnItemRemovedListener> itemRemovedListeners;
 
     private int imageSize = -1;
     private int red, green, blue;
@@ -86,7 +87,6 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
         this.mainActivity = mainActivity;
         this.recyclerView = recyclerView;
         this.homeFragment = homeFragment;
-        optionsButtons = new ArrayList<>();
 
         this.context = recyclerView.getContext();
         canAnimate = true;
@@ -94,7 +94,6 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
     }
 
     public void init() {
-        addNewFrag = homeFragment.addNewFrag;
         fab = homeFragment.fab;
         touchHelper = homeFragment.touchHelper;
         overScrollDecor = homeFragment.overScrollDecor;
@@ -198,7 +197,7 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
                         if (!longClicked && t1 - t2 < 100) {
                             if (itemEditListener != null && holder.itemView.getParent() != null) {
                                 //itemEditListener.onItemEdit(item, holder.getAdapterPosition());
-                                setReplyActive(position, holder);
+                                setReplyActive(holder);
                             }
                             return false;
                         }
@@ -212,8 +211,9 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
         });
     }
 
-    private void setReplyActive(int position, ViewHolder holder) {
+    private void setReplyActive(ViewHolder holder) {
         if (holder.itemView.getParent() == null) return;
+        int position = holder.getAdapterPosition();
         ReplyItem item = MainActivity.replyItems.get(position);
 
         boolean checked = item.isChecked();
@@ -235,48 +235,27 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
 
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private void setUpOptionsHandle(int position, ViewHolder holder, ReplyItem item) {
-        if(item.getOptionsButton() != null){
-            item.getOptionsButton().expand(false);
-            return;
-        }
 
-//        if (optionsButtons.size() - 1 < position) {
-//            optionsButtons.add(holder.optionsHandle);
-//        }
-//        if (optionsButtons.get(position) == null) {
-//            optionsButtons.set(position, holder.optionsHandle);
-//        }
-
-        holder.optionsHandle.setOnExpandListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                closeAllOptionsMenus();
-                holder.title.setEllipsize(TextUtils.TruncateAt.END);
-                holder.title.setWidth(holder.title.getWidth() - holder.optionsHandle.getContainerWidth());
-            }
+        holder.optionsHandle.setOnExpandListener((open) -> {
+            if(open)
+                closeAllOptionsMenus(holder.getAdapterPosition());
         });
 
         if(holder.optionsHandle.getIconCount() == 0) {
-            holder.optionsHandle.addIcon(R.drawable.baseline_check_black_24, new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    holder.optionsHandle.expand(false);
-                }
+            holder.optionsHandle.addIcon(R.drawable.baseline_check_black_24, (view) -> {
+                holder.optionsHandle.expand(false);
+                replyItems.get(holder.getAdapterPosition()).setOptionsOpen(false);
             });
 
-            holder.optionsHandle.addIcon(R.drawable.baseline_create_black_24, new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    int pos = holder.getAdapterPosition();
-                    if (itemEditListener != null)
-                        itemEditListener.onItemEdit(replyItems.get(pos), pos);
-                }
+            holder.optionsHandle.addIcon(R.drawable.baseline_create_black_24, (view) -> {
+                int pos = holder.getAdapterPosition();
+                if (itemEditListener != null)
+                    itemEditListener.onItemEdit(replyItems.get(pos), pos);
             });
 
-            holder.optionsHandle.addIcon(R.drawable.baseline_reorder_black_24, new View.OnTouchListener() {
-                @Override
-                public boolean onTouch(View v, MotionEvent event) {
+            holder.optionsHandle.addIcon(R.drawable.baseline_reorder_black_24, (view, event) -> {
                     if (event.getAction() == MotionEvent.ACTION_DOWN) {
                         dragging = true;
                         homeFragment.getToolbar().setOverScroll(false);
@@ -288,32 +267,39 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
                         animateElevation(holder, QuickTools.convertDpToPx(context, 2)).start();
                     }
                     return false;
-                }
             });
 
-            holder.optionsHandle.addIcon(R.drawable.baseline_delete_black_24, new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    removeItem(holder, position);
+            holder.optionsHandle.addIcon(R.drawable.baseline_delete_black_24, (view) -> {
+                removeItem(holder, position);
+                for (OnItemRemovedListener listener : itemRemovedListeners) {
+                    listener.onItemRemoved(item, position);
                 }
             });
         }
 
-        item.setOptionsButton(holder.optionsHandle);
+        holder.optionsHandle.expand(item.isOptionsOpen(), true, false);
+        holder.optionsHandle.setTint(ContextCompat.getColor(holder.title.getContext(), item.isChecked()? R.color.white: R.color.black));
     }
 
-    public void closeAllOptionsMenus() {
-        ExpandingOptionsButton optionsButton;
+    public void closeAllOptionsMenus(int expandedPos) {
 
-        for (ReplyItem item : replyItems) {
-            optionsButton = item.getOptionsButton();
-            if (optionsButton != null && optionsButton.isExpanded())
-                optionsButton.expand(false);
+
+        for(int i = 0; i < replyItems.size(); i++){
+           if(i != expandedPos)
+               setOptionsHandleExpanded(i, false, true);
         }
-//        for (ExpandingOptionsButton optionsButton : optionsButtons) {
-//            if (optionsButton != null && optionsButton.isExpanded())
-//                optionsButton.expand(false);
-//        }
+
+        setOptionsHandleExpanded(expandedPos, true, false);
+
+    }
+
+    private void setOptionsHandleExpanded(int i, boolean expanded, boolean isStatic){
+        replyItems.get(i).setOptionsOpen(expanded);
+
+        ViewHolder vh = (ViewHolder) recyclerView.findViewHolderForAdapterPosition(i);
+        if(vh == null)
+            return;
+        vh.optionsHandle.expand(expanded, isStatic, false);
     }
 
 
@@ -438,6 +424,15 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
 
     public void removeItem(ViewHolder holder, int index) {
         int position = holder.getAdapterPosition() != -1 ? holder.getAdapterPosition() : index;
+        if(position >= replyItems.size())
+            return;
+
+        if(replyItems.get(position).isChecked()) {
+            replyItems.get(position).setChecked(false);
+            mainActivity.endSMSService();
+        }
+
+        replyItems.remove(position);
         notifyItemRemoved(position);
         if(true) return;
 
@@ -459,7 +454,6 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
                 if(MainActivity.replyItems.size() <= position) return;
 
                 MainActivity.replyItems.remove(position);
-                addNewFrag.notifyItemRemoved(holder.title.getText().toString());
                 notifyItemRemoved(position);
             }
         }).start();
@@ -478,7 +472,7 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
     class DoubleTapDetector extends GestureDetector.SimpleOnGestureListener {
         @Override
         public boolean onDoubleTap(MotionEvent e) {
-            setReplyActive(focusedHolder.getAdapterPosition(), focusedHolder);
+            setReplyActive(focusedHolder);
             return true;
         }
     }
@@ -585,10 +579,6 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
             }
         }
         notifyDataSetChanged();
-    }
-
-    public void setOnItemEditListener(final onItemEditListener itemEditListener) {
-        this.itemEditListener = itemEditListener;
     }
 
 
@@ -706,6 +696,21 @@ public class ReplyListAdapter extends RecyclerView.Adapter<ReplyListAdapter.View
 
     public interface onItemEditListener {
         void onItemEdit(ReplyItem item, int position);
+    }
+
+    public void setOnItemEditListener(final onItemEditListener itemEditListener) {
+        this.itemEditListener = itemEditListener;
+    }
+
+    public interface OnItemRemovedListener {
+        void onItemRemoved (ReplyItem item, int position);
+    }
+
+    public void addOnItemRemovedListener(OnItemRemovedListener itemRemovedListener){
+        if(itemRemovedListeners == null)
+            itemRemovedListeners = new ArrayList<>();
+
+        itemRemovedListeners.add(itemRemovedListener);
     }
 
     public interface onLongClickListener {

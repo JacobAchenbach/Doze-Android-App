@@ -21,17 +21,24 @@
 
         </android.support.v7.widget.RecyclerView>
 
-        <TextView
-            android:id="@+id/text_no_replies"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="@dimen/padding_large"
-            android:text="Feels lonely.. add some Replies to freshen up the place"
-            android:textColor="@color/colorAccent"
-            android:textSize="20sp"
-            android:textAlignment="center"
-            android:layout_centerInParent="true"
-            android:visibility="gone"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:weightSum="3"
+            android:orientation="vertical">
+            <TextView
+                android:id="@+id/text_empty_replies"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="2"
+                android:gravity="center"
+                android:layout_gravity="center_horizontal"
+                android:text="Feels lonely..\n Add some Replies to freshen up the place!"
+                android:textColor="@color/colorAccent"
+                android:textSize="18sp"
+                android:textAlignment="center"
+                android:visibility="visible"/>
+        </LinearLayout>
 
     </RelativeLayout>
 </RelativeLayout>

@@ -16,6 +16,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.TextView;
 
 import cache.doze.Activities.MainActivity;
 import cache.doze.Model.ReplyItem;
@@ -35,12 +36,16 @@ public class HomeFragment extends DozeFragment {
     public AddNewReplyFragment addNewFrag;
 
     View root;
+    private TextView emptyRepliesText;
     private RecyclerView replyRecyclerView;
     private ReplyListAdapter recyclerViewAdapter;
     public FunFab fab;
 
     public ItemTouchHelper touchHelper;
     public IOverScrollDecor overScrollDecor;
+
+    boolean fabExpanded = false;
+    boolean showContactsPage = false;
 
     public static HomeFragment newInstance(int page, String title) {
         HomeFragment homeFragment = new HomeFragment();
@@ -63,9 +68,10 @@ public class HomeFragment extends DozeFragment {
         root = inflater.inflate(R.layout.fragment_home, container, false);
         mainActivity = (MainActivity) getActivity();
         replyRecyclerView = root.findViewById(R.id.recycler_view);
+        emptyRepliesText = root.findViewById(R.id.text_empty_replies);
 
         setUpRecyclerView();
-        setUpKeyboardListener();
+
         if (addNewFrag == null) setUpFab();
         super.onCreateView(root);
         return root;
@@ -83,7 +89,7 @@ public class HomeFragment extends DozeFragment {
         replyRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
-                super.onScrolled(recyclerView, dx, dy);;
+                super.onScrolled(recyclerView, dx, dy);
 
                 if (Math.abs(dy) > 10)
                     recyclerViewAdapter.fingerDown = false;
@@ -93,14 +99,22 @@ public class HomeFragment extends DozeFragment {
 
         touchHelper.attachToRecyclerView(replyRecyclerView);
         replyRecyclerView.setOverScrollMode(View.OVER_SCROLL_NEVER);
+
+        showTextIfEmpty();
     }
+
+    private void showTextIfEmpty(){
+        if(MainActivity.replyItems == null || MainActivity.replyItems.isEmpty()){
+            emptyRepliesText.setVisibility(View.VISIBLE);
+        }else
+            emptyRepliesText.setVisibility(View.GONE);
+    }
+
 
     public void setFab(FunFab fab) {
         this.fab = fab;
     }
 
-    boolean fabExpanded = false;
-    boolean showContactsPage = false;
 
     public void setUpFab() {
         if(fab == null)fab = mainActivity.getFab();
@@ -122,60 +136,48 @@ public class HomeFragment extends DozeFragment {
                 }
             });
 
-            fab.setFabSubmitListener(new FunFab.FabSubmitListener() {
-                @Override
-                public void onSubmit() {
-                    if (addNewFrag.getState() == AddNewReplyFragment.STATE_ADD_NEW) {
-                        MainActivity.replyItems.add(addNewFrag.getReplyItem());
-                        recyclerViewAdapter.notifyDataSetChanged();
-                    } else {
-                        editReplyItem(addNewFrag.getReplyItem());
-                        changeFragProperties(true);
-                    }
-                    mainActivity.saveReplyItems();
-                    //mainActivity.setToolbarColor(ContextCompat.getColor(context, R.color.white));
-                    //getToolbar().setTitle("Doze");
-                }
-            });
-
-            fab.setFabCancelListener(new FunFab.FabCancelListener() {
-                @Override
-                public void onCancel() {
+            fab.setFabSubmitListener(() -> {
+                if (addNewFrag.getState() == AddNewReplyFragment.STATE_ADD_NEW) {
+                    MainActivity.replyItems.add(addNewFrag.getReplyItem());
+                    recyclerViewAdapter.notifyDataSetChanged();
+                } else {
+                    editReplyItem(addNewFrag.getReplyItem());
                     changeFragProperties(true);
-                    //mainActivity.setToolbarColor(ContextCompat.getColor(context, R.color.white));
-                    //getToolbar().setTitle("Doze");
                 }
+                mainActivity.saveReplyItems();
+
+                showTextIfEmpty();
             });
 
-            addNewFrag.setContactsButtonPressedListener(new AddNewReplyFragment.OnContactsButtonPressedListener() {
-                @Override
-                public void onPressed() {
-                    if(!fab.isOpen()) return;
-                    getToolbar().scrollToTop();
-                    fab.setIcon(ContextCompat.getDrawable(context, R.drawable.baseline_more_vert_black_36));
-                    fab.expandFab(false, true);
-                    showContactsPage = true;
-                    fab.hide();
-                }
+            fab.setFabCancelListener(() -> {
+                changeFragProperties(true);
             });
 
-            recyclerViewAdapter.setOnItemEditListener(new ReplyListAdapter.onItemEditListener() {
-                @Override
-                public void onItemEdit(ReplyItem item, int position) {
-                    if(fab.isAnimating()) return;
-/*                    if (addNewFrag.getState() == AddNewReplyFragment.STATE_ADD_NEW)
-                        mainActivity.setToolbarColor(ContextCompat.getColor(context, R.color.colorPrimary), item.getColors()[0]);*/
-                    //getToolbar().setTitle(item.getTitle());
-                    addNewFrag.setReplyItem(item);
-                    changeFragProperties(false);
-                    //fab.setFabExpandedBackground(item.isChecked() ? item.getGradientTurned(GradientDrawable.Orientation.BOTTOM_TOP) : item.getGradientLighter());
-                    fab.expandFab(true, false);
-                    //fab.setFabClosedBackground(item.getColors()[item.getColors().length - 1]);
-                }
+            addNewFrag.setContactsButtonPressedListener(() -> {
+                if(!fab.isOpen()) return;
+                getToolbar().scrollToTop();
+                fab.setIcon(ContextCompat.getDrawable(context, R.drawable.baseline_more_vert_black_36));
+                fab.expandFab(false, true);
+                showContactsPage = true;
+                fab.hide();
+            });
+
+            recyclerViewAdapter.setOnItemEditListener((item, position) -> {
+                if(fab.isAnimating()) return;
+                addNewFrag.setReplyItem(item);
+                changeFragProperties(false);
+                //fab.setFabExpandedBackground(item.isChecked() ? item.getGradientTurned(GradientDrawable.Orientation.BOTTOM_TOP) : item.getGradientLighter());
+                fab.expandFab(true, false);
+                //fab.setFabClosedBackground(item.getColors()[item.getColors().length - 1]);
+
+            });
+
+            recyclerViewAdapter.addOnItemRemovedListener((item, position) -> {
+                showTextIfEmpty();
+                addNewFrag.notifyItemRemoved(item.getTitle());
             });
 
             recyclerViewAdapter.init();
-
 
         }
     }
@@ -212,7 +214,6 @@ public class HomeFragment extends DozeFragment {
     }
 
     private void editReplyItem(ReplyItem replyItem) {
-        //recyclerViewAdapter.updateReplyItem(replyItem);
         int position = 0;
         for (int i = 0; i < MainActivity.replyItems.size(); i++) {
             if (MainActivity.replyItems.get(i).getUniqueId().equalsIgnoreCase(replyItem.getUniqueId())) {
@@ -221,42 +222,6 @@ public class HomeFragment extends DozeFragment {
             }
         }
         recyclerViewAdapter.notifyItemChanged(position);
-    }
-
-    boolean isKeyboardShowing;
-    private void setUpKeyboardListener(){
-        // ContentView is the root view of the layout of this activity/fragment
-        root.getViewTreeObserver().addOnGlobalLayoutListener(
-                new ViewTreeObserver.OnGlobalLayoutListener() {
-                    @Override
-                    public void onGlobalLayout() {
-
-                        Rect r = new Rect();
-                        root.getWindowVisibleDisplayFrame(r);
-                        int screenHeight = root.getRootView().getHeight();
-
-                        // r.bottom is the position above soft keypad or device button.
-                        // if keypad is shown, the r.bottom is smaller than that before.
-                        int keypadHeight = screenHeight - r.bottom;
-
-                        Log.d("KeyboardHeight", "keypadHeight = " + keypadHeight);
-
-                        if (keypadHeight > screenHeight * 0.15) { // 0.15 ratio is perhaps enough to determine keypad height.
-                            // keyboard is opened
-                            if (!isKeyboardShowing) {
-                                isKeyboardShowing = true;
-                                //onKeyboardVisibilityChanged(true);
-                            }
-                        }
-                        else {
-                            // keyboard is closed
-                            if (isKeyboardShowing) {
-                                isKeyboardShowing = false;
-                                //onKeyboardVisibilityChanged(false);
-                            }
-                        }
-                    }
-                });
     }
 
     @Override

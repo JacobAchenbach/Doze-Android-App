@@ -7,6 +7,7 @@ import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -18,6 +19,8 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewTreeObserver;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
@@ -38,6 +41,7 @@ import cache.doze.Model.ReplyItem;
 import cache.doze.MonitorSmsService;
 import cache.doze.R;
 import cache.doze.Tools.PermissionsHelper;
+import cache.doze.Tools.ScreenUtil;
 import cache.doze.Views.DozeSnackbar;
 import cache.doze.Views.DozeToolbar;
 import cache.doze.Views.FluidSearchView;
@@ -73,6 +77,7 @@ public class MainActivity extends AppCompatActivity {
     int maxTimesMessaged = 5;
     boolean welcomeScreen = true;
     boolean hasPermissions;
+    public boolean isKeyboardShowing;
 
     /**
      * Timer to prevent accidental spam to recipient
@@ -103,7 +108,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onStart() {
         super.onStart();
-        //getPrefs().edit().putString(MainActivity.PREFS_REPLY_ITEMS, "").apply();
 
     }
 
@@ -123,13 +127,11 @@ public class MainActivity extends AppCompatActivity {
         super.onPause();
 //        if(fluidSearchView != null && !FluidSearchView.isDetached)
 //            fluidSearchView.detach();
-        //MainActivity.preset = ((HomeFragment)viewPagerAdapter.getFragment(0)).getPresetText();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        //preset = presetInput.getText().toString();
     }
 
     @Override
@@ -195,14 +197,8 @@ public class MainActivity extends AppCompatActivity {
 
 
         setSupportActionBar(toolbar = findViewById(R.id.toolbar));
-        /*getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-        getWindow().setStatusBarColor(ContextCompat.getColor(this, R.color.colorPrimary));
-        int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
-        getWindow().getDecorView().setSystemUiVisibility(uiOptions);
-        */
 
         replyItems = new ArrayList<>();
-        //replyItems.add(new ReplyItem("Work", "Currently out of the office, please leave a message!"));
         fab = findViewById(R.id.fab);
         dozeSnackbar = findViewById(R.id.doze_snackbar);
 
@@ -223,7 +219,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         initSearchView();
-        //initKeyboardListener();
+        initKeyboardListener();
 
         refreshReplyItems();
     }
@@ -251,6 +247,10 @@ public class MainActivity extends AppCompatActivity {
         //if(FluidSearchView.isDetached) fluidSearchView.build();
         //fluidSearchView.hide();
         //fluidSearchView.setOnQueryTextListener(qqqq);
+    }
+
+    private void initKeyboardListener(){
+        ScreenUtil.setUpKeyboardListener(findViewById(R.id.main_activity), this);
     }
 
     public boolean isServiceRunning() {

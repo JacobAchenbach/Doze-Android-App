@@ -18,16 +18,17 @@ import cache.doze.Views.ExpandingOptionsButton;
  * Created by Chris on 10/4/2018.
  */
 
-public class ReplyItem implements Serializable{
+public class ReplyItem implements Serializable {
     private String title;
     private String replyText;
     private boolean checked;
     private ArrayList<Contact> contacts;
     private String uniqueId;
     private int[] drawableColors;
+    private transient boolean optionsOpen;
     private transient GradientDrawable bgDrawable;
     private transient GradientDrawable borderDrawable;
-    private transient ExpandingOptionsButton optionsButton;
+
 
     public ReplyItem(String title, String reply) {
         this.title = title;
@@ -36,30 +37,22 @@ public class ReplyItem implements Serializable{
 
         bgDrawable = null;
         borderDrawable = null;
-        optionsButton = null;
 
         uniqueId = (System.currentTimeMillis() + new Random().nextInt(Math.abs((int) System.currentTimeMillis()))) + reply.length() + "";
     }
 
-    public void setOptionsButton(ExpandingOptionsButton optionsButton){
-        this.optionsButton = optionsButton;
-    }
 
-    public ExpandingOptionsButton getOptionsButton() {
-        return optionsButton;
-    }
-
-    public void setColorScheme(Context context, String[] colors){
+    public void setColorScheme(Context context, String[] colors) {
         bgDrawable = new GradientDrawable();
 
         drawableColors = new int[colors.length - 1];
-        for(int i = 0; i < colors.length - 1; i++)
+        for (int i = 0; i < colors.length - 1; i++)
             drawableColors[i] = Color.parseColor("#" + colors[i]);
         Log.d("Title: ", colors[colors.length - 1]);
 
         bgDrawable.setColors(drawableColors);
         int rand = new Random().nextInt(2);
-        bgDrawable.setOrientation(rand == 0? GradientDrawable.Orientation.TL_BR: GradientDrawable.Orientation.BL_TR);
+        bgDrawable.setOrientation(rand == 0 ? GradientDrawable.Orientation.TL_BR : GradientDrawable.Orientation.BL_TR);
         bgDrawable.setShape(GradientDrawable.RECTANGLE);
         bgDrawable.setCornerRadius(context.getResources().getDimension(R.dimen.default_rounded_corner));
 
@@ -72,28 +65,30 @@ public class ReplyItem implements Serializable{
         borderDrawable.setShape(GradientDrawable.RECTANGLE);
         borderDrawable.setCornerRadius(context.getResources().getDimension(R.dimen.default_rounded_corner));
     }
-    public GradientDrawable getGradient(){
+
+    public GradientDrawable getGradient() {
         return bgDrawable;
     }
 
-    public int[] getColors(){
+    public int[] getColors() {
         return drawableColors;
     }
 
-    public GradientDrawable getGradientTurned(GradientDrawable.Orientation orientation){
-        if(orientation == null || bgDrawable == null || bgDrawable.getConstantState() == null)return null;
+    public GradientDrawable getGradientTurned(GradientDrawable.Orientation orientation) {
+        if (orientation == null || bgDrawable == null || bgDrawable.getConstantState() == null)
+            return null;
 
         GradientDrawable rotated = (GradientDrawable) bgDrawable.getConstantState().newDrawable().mutate();
         rotated.setOrientation(orientation);
         return rotated;
     }
 
-    public GradientDrawable getGradientLighter(){
-        if(bgDrawable == null || bgDrawable.getConstantState() == null) return null;
+    public GradientDrawable getGradientLighter() {
+        if (bgDrawable == null || bgDrawable.getConstantState() == null) return null;
 
         float factor = 0.3f;
         int[] lighterColors = new int[drawableColors.length];
-        for(int i = 0; i < drawableColors.length; i++) {
+        for (int i = 0; i < drawableColors.length; i++) {
             int color = drawableColors[i];
             int red = (int) ((Color.red(color) * (1 - factor) / 255 + factor) * 255);
             int green = (int) ((Color.green(color) * (1 - factor) / 255 + factor) * 255);
@@ -106,11 +101,12 @@ public class ReplyItem implements Serializable{
         clone.setOrientation(GradientDrawable.Orientation.BR_TL);
         return clone;
     }
-    public GradientDrawable getBorder(){
+
+    public GradientDrawable getBorder() {
         return borderDrawable;
     }
 
-    public ReplyItem(ReplyItem replyItem){
+    public ReplyItem(ReplyItem replyItem) {
         this.title = replyItem.title;
         this.replyText = replyItem.replyText;
         this.checked = replyItem.checked;
@@ -121,35 +117,50 @@ public class ReplyItem implements Serializable{
     public void setTitle(String title) {
         this.title = title;
     }
+
     public String getTitle() {
         return title;
     }
-    public void setContacts(ArrayList<Contact> contacts){
+
+    public void setContacts(ArrayList<Contact> contacts) {
         this.contacts = contacts;
     }
+
     public ArrayList<Contact> getContacts() {
-        return contacts != null? contacts: new ArrayList<Contact>();
+        return contacts != null ? contacts : new ArrayList<>();
     }
+
     public void setReplyText(String replyText) {
         this.replyText = replyText;
     }
+
     public String getReplyText() {
         return replyText;
     }
+
     public void setChecked(boolean checked) {
         this.checked = checked;
     }
+
     public boolean isChecked() {
         return checked;
+    }
+
+    public void setOptionsOpen(boolean optionsOpen) {
+        this.optionsOpen = optionsOpen;
+    }
+
+    public boolean isOptionsOpen() {
+        return optionsOpen;
     }
 
     public String getUniqueId() {
         return uniqueId;
     }
 
-    public boolean hasContact(String number){
-        for(int i = 0; i < contacts.size(); i++){
-            if(contacts.get(i).hasNumber(number)){
+    public boolean hasContact(String number) {
+        for (int i = 0; i < contacts.size(); i++) {
+            if (contacts.get(i).hasNumber(number)) {
                 return true;
             }
         }

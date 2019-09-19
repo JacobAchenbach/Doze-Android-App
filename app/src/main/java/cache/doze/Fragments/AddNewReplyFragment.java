@@ -17,6 +17,7 @@ import cache.doze.Activities.MainActivity;
 import cache.doze.Model.ReplyItem;
 import cache.doze.R;
 import cache.doze.SaveEditText;
+import cache.doze.Tools.ScreenUtil;
 import cache.doze.Views.FunFab.FunFabFrag;
 
 /**
@@ -75,7 +76,7 @@ public class AddNewReplyFragment extends FunFabFrag {
                 return false;
             }
         });
-        inputTitle.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+/*        inputTitle.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             boolean hadFocus;
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
@@ -100,7 +101,7 @@ public class AddNewReplyFragment extends FunFabFrag {
 
                 this.hadFocus = hasFocus;
             }
-        });
+        });*/
         //setupSwitchesAndOnClicks();
 
     }
@@ -287,10 +288,10 @@ public class AddNewReplyFragment extends FunFabFrag {
 
         imm.toggleSoftInput(InputMethodManager.SHOW_FORCED,0);
 
-        if (inputTitle.hasFocus())
+/*        if (inputTitle.hasFocus())
             inputTitle.clearFocus();
         if (inputMessage.hasFocus())
-            inputMessage.clearFocus();
+            inputMessage.clearFocus();*/
 
         keyboardVisibilityListener.onKeyboardVisibility(true);
     }
@@ -308,7 +309,7 @@ public class AddNewReplyFragment extends FunFabFrag {
         if (inputMessage.hasFocus())
             inputMessage.clearFocus();
 
-        keyboardVisibilityListener.onKeyboardVisibility(false);
+        //keyboardVisibilityListener.onKeyboardVisibility(false);
     }
 
 

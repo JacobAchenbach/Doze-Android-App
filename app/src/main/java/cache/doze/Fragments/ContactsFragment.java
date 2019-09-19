@@ -409,6 +409,7 @@ public class ContactsFragment extends DozeFragment implements SearchView.OnQuery
                 progressBar.setVisibility(View.GONE);
                 notifText.setText("No Contacts to show :/");
                 notifText.setVisibility(View.VISIBLE);
+                loadingContacts = false;
                 if(swipeRefresh != null)swipeRefresh.setRefreshing(false);
                 return;
             }

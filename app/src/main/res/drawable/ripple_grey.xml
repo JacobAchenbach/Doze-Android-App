@@ -13,6 +13,7 @@
             <!-- ... NOT here. -->
             <item android:state_selected="true">
                 <color android:color="@color/light_gray_solid"/>
+                <shape android:shape="oval"/>
             </item>
 
             <item android:state_activated="true">

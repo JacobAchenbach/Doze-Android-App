@@ -4,6 +4,7 @@ import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.ColorStateList;
+import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.support.annotation.DrawableRes;
@@ -34,7 +35,7 @@ public class ExpandingOptionsButton extends RelativeLayout {
     private RelativeLayout optionIconsContainer;
     private ArrayList<ExpandedIcon> expandedIcons = new ArrayList<>();
 
-    private OnClickListener onExpandListener;
+    private OnExpandListener onExpandListener;
 
     private int iconSize;
     private int mediumPadding;
@@ -57,7 +58,7 @@ public class ExpandingOptionsButton extends RelativeLayout {
         sharedConstructor(context);
     }
 
-    public void sharedConstructor(Context context){
+    public void sharedConstructor(Context context) {
         this.context = context;
         setElevation(QuickTools.convertDpToPx(context, 8));
         LayoutInflater.from(context).inflate(R.layout.view_expanding_options_button, this);
@@ -70,28 +71,42 @@ public class ExpandingOptionsButton extends RelativeLayout {
         setUpMainIcon();
     }
 
-    private void setUpMainIcon(){
+    private void setUpMainIcon() {
         ((ViewGroup) mainIcon.getParent()).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                expand(!expanded);
+                if (onExpandListener != null)
+                    onExpandListener.onExpand(true);
+
+                //expand(!expanded);
             }
         });
     }
 
-    public void expand(boolean show){
-        if(animating) return;
+    public void expand(boolean open) {
+        expand(open, false, true);
+    }
 
-        if(show)
-            onExpandListener.onClick(this);
+    public void expand(boolean open, boolean isStatic, boolean notifyListener) {
+        if (animating || expanded == open) return;
+
+        if (notifyListener && onExpandListener != null)
+            onExpandListener.onExpand(open);
 
 
-        expanded = show;
+        expanded = open;
+
+        //if (!isStatic)
+            expandAnimate(open);
+        //else
+            //expandStatic(open);
+    }
+
+    private void expandAnimate(boolean open) {
         animating = true;
-
         int destWidth;
 
-        if(show) {
+        if (open) {
             int numberOfIcons = expandedIcons.size();
             destWidth = iconSize * numberOfIcons + iconSize * numberOfIcons;
 
@@ -102,14 +117,11 @@ public class ExpandingOptionsButton extends RelativeLayout {
             //Change Width to expanded width
             ValueAnimator widthAnimation = ValueAnimator.ofInt(optionIconsContainer.getWidth(), destWidth).setDuration(200);
             widthAnimation.setInterpolator(new DecelerateInterpolator());
-            widthAnimation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-                @Override
-                public void onAnimationUpdate(ValueAnimator valueAnimator) {
-                    int val = (Integer) valueAnimator.getAnimatedValue();
-                    ViewGroup.LayoutParams layoutParams = optionIconsContainer.getLayoutParams();
-                    layoutParams.width = val;
-                    optionIconsContainer.setLayoutParams(layoutParams);
-                }
+            widthAnimation.addUpdateListener((valueAnimator) -> {
+                int val = (Integer) valueAnimator.getAnimatedValue();
+                ViewGroup.LayoutParams layoutParams = optionIconsContainer.getLayoutParams();
+                layoutParams.width = val;
+                optionIconsContainer.setLayoutParams(layoutParams);
             });
             widthAnimation.setStartDelay(150);
             widthAnimation.start();
@@ -119,7 +131,7 @@ public class ExpandingOptionsButton extends RelativeLayout {
             optionIconsContainer.setAlpha(0f);
             optionIconsContainer.setVisibility(VISIBLE);
             optionIconsContainer.animate().alpha(1f).setStartDelay(150).setDuration(150).start();
-        }else{
+        } else {
             destWidth = iconSize;
 
             ObjectAnimator rotationAnim = ObjectAnimator.ofFloat(mainIcon, "rotation", 90f, 180f);
@@ -130,14 +142,11 @@ public class ExpandingOptionsButton extends RelativeLayout {
             //Change Width to expanded width
             ValueAnimator widthAnimation = ValueAnimator.ofInt(optionIconsContainer.getWidth(), destWidth).setDuration(100);
             widthAnimation.setInterpolator(new AccelerateInterpolator());
-            widthAnimation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-                @Override
-                public void onAnimationUpdate(ValueAnimator valueAnimator) {
-                    int val = (Integer) valueAnimator.getAnimatedValue();
-                    ViewGroup.LayoutParams layoutParams = optionIconsContainer.getLayoutParams();
-                    layoutParams.width = val;
-                    optionIconsContainer.setLayoutParams(layoutParams);
-                }
+            widthAnimation.addUpdateListener((valueAnimator) -> {
+                int val = (Integer) valueAnimator.getAnimatedValue();
+                ViewGroup.LayoutParams layoutParams = optionIconsContainer.getLayoutParams();
+                layoutParams.width = val;
+                optionIconsContainer.setLayoutParams(layoutParams);
             });
             widthAnimation.start();
 
@@ -148,7 +157,7 @@ public class ExpandingOptionsButton extends RelativeLayout {
             new Handler().postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    if(!expanded)
+                    if (!expanded)
                         optionIconsContainer.setVisibility(GONE);
                 }
             }, 250);
@@ -157,49 +166,71 @@ public class ExpandingOptionsButton extends RelativeLayout {
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                if(animating) animating = false;
+                if (animating) animating = false;
             }
         }, 350);
     }
 
-    public void setIcon(@DrawableRes int res){
+    private void expandStatic(boolean open) {
+        int destWidth;
+
+        int numberOfIcons = expandedIcons.size();
+        destWidth = open ? iconSize * numberOfIcons + iconSize * numberOfIcons : iconSize;
+
+        mainIcon.setRotation(open ? 90f : 0f);
+        ViewGroup.LayoutParams lp = optionIconsContainer.getLayoutParams();
+        lp.width = destWidth;
+        optionIconsContainer.setLayoutParams(lp);
+
+        mainIcon.setAlpha(open ? 0f : 1f);
+
+        optionIconsContainer.setAlpha(open ? 1f : 0f);
+        optionIconsContainer.setVisibility(open ? VISIBLE : GONE);
+
+    }
+
+    public void setIcon(@DrawableRes int res) {
         mainIcon.setBackground(ContextCompat.getDrawable(context, res));
     }
 
-    public void addIcon(@DrawableRes int res, OnClickListener onClickListener){
+    public void addIcon(@DrawableRes int res, OnClickListener onClickListener) {
         ExpandedIcon option = new ExpandedIcon(context, ContextCompat.getDrawable(context, res), onClickListener);
         optionIconsContainer.addView(option);
         expandedIcons.add(option);
     }
 
-    public void addIcon(@DrawableRes int res, OnTouchListener onTouchListener){
+    public void addIcon(@DrawableRes int res, OnTouchListener onTouchListener) {
         ExpandedIcon option = new ExpandedIcon(context, ContextCompat.getDrawable(context, res), onTouchListener);
         optionIconsContainer.addView(option);
         expandedIcons.add(option);
     }
 
 
-    public void setTint(int color){
+    public void setTint(int color) {
         mainIcon.getBackground().setTint(color);
 
-        for(ExpandedIcon option: expandedIcons){
+        for (ExpandedIcon option : expandedIcons) {
             option.setTint(color);
         }
     }
 
-    public void setOnExpandListener(OnClickListener onExpandListener){
+    public void setOnExpandListener(OnExpandListener onExpandListener) {
         this.onExpandListener = onExpandListener;
     }
 
-    public boolean isExpanded(){
+    public interface OnExpandListener {
+        void onExpand(boolean open);
+    }
+
+    public boolean isExpanded() {
         return expanded;
     }
 
-    public int getIconCount(){
+    public int getIconCount() {
         return expandedIcons.size();
     }
 
-    public int getContainerWidth(){
+    public int getContainerWidth() {
         return optionIconsContainer.getWidth();
     }
 
@@ -222,7 +253,7 @@ public class ExpandingOptionsButton extends RelativeLayout {
             init(drawable);
         }
 
-        private void init(Drawable drawable){
+        private void init(Drawable drawable) {
             icon = new ImageView(context);
             addView(icon);
 
@@ -238,11 +269,17 @@ public class ExpandingOptionsButton extends RelativeLayout {
             int numberOfIcons = expandedIcons.size();
             int margin = iconSize * (numberOfIcons + 1) + iconSize * (numberOfIcons - 1);
             //if(numberOfIcons > 0) margin += mediumPadding;
-            lp.setMargins(0,0, margin,0);
+            lp.setMargins(0, 0, margin, 0);
             setLayoutParams(lp);
+
+            //android.R.attr.actionBarItemBackground;
+            TypedArray a = context.getTheme().obtainStyledAttributes(new int[]{android.R.attr.actionBarItemBackground});
+            Drawable selector = a.getDrawable(0);
+            if (selector != null)
+                ExpandedIcon.this.setBackground(selector);
         }
 
-        public void setTint(int color){
+        public void setTint(int color) {
             icon.getBackground().setTint(color);
             //optionIconsContainer.setBackgroundTintList(new ColorStateList(new int[][]{}, new int[]{ContextCompat.getColor(context, R.color.black)}));
         }
